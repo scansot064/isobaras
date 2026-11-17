@@ -110,17 +110,24 @@ async function renderMapPng() {
   }
 }
 
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  try {
+    link.click();
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+}
+
 document.getElementById("export-png").addEventListener("click", async event => {
   const button = event.currentTarget;
   button.disabled = true;
   try {
     const blob = await renderMapPng();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "isobaras.png";
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    downloadBlob(blob, "isobaras.png");
     status.textContent = "Mapa descargado en PNG.";
   } catch (error) {
     console.error("No se pudo exportar el mapa:", error);

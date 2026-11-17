@@ -15,6 +15,7 @@
   <script defer src="air.js"></script>
   <script defer src="app.js"></script>
   <script defer src="export.js"></script>
+  <script defer src="save.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -109,7 +110,7 @@
         <label class="switch-row"><span>Simular masas de aire<small>Temperatura y viento orientativos</small></span><input id="air-toggle" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label>
         <div class="air-legend"><span><i class="legend-dot polar"></i>Polar</span><span><i class="legend-dot temperate"></i>Templada</span><span><i class="legend-dot tropical"></i>Tropical</span></div>
       </section>
-      <div class="sidebar-foot"><span>✦</span> Un mapa para pensar el tiempo.<br>Los cambios se pierden al recargar o cerrar la página.</div>
+      <div class="sidebar-foot"><span>✦</span> Un mapa para pensar el tiempo.<br>Guarda el mapa antes de recargar o cerrar la página.</div>
     </aside>
 
     <section class="canvas-area" aria-label="Área de trabajo">
@@ -120,6 +121,9 @@
           <p id="canvas-description">Isobaras, centros de acción y frentes</p>
         </div>
         <div class="canvas-actions">
+          <button type="button" id="save-map">Guardar mapa</button>
+          <button type="button" id="load-map">Cargar mapa</button>
+          <input id="map-file" type="file" accept=".json,application/json" hidden>
           <button type="button" id="export-png">Descargar PNG</button>
           <button type="button" id="delete" disabled>Eliminar selección</button>
           <button type="button" id="clear">Limpiar capa</button>
