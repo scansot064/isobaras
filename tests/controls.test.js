@@ -6,6 +6,19 @@ document.getElementById("app").addEventListener("load", async () => {
     const check = (condition, message) => {
       if (!condition) throw new Error(message);
     };
+    const titleInput = doc.querySelector("#map-title-input");
+    const title = doc.querySelector("#map-title");
+    check(title.hidden, "El título vacío no debe ocupar espacio en la barra.");
+    titleInput.value = "Situación <atlántica>";
+    titleInput.dispatchEvent(new app.Event("input", { bubbles: true }));
+    check(!title.hidden && title.textContent === titleInput.value && !title.children.length,
+      "El título debe actualizarse al escribir y tratarse como texto.");
+    doc.querySelector('[data-layer="upper"]').click();
+    check(title.textContent === titleInput.value && !title.hidden,
+      "El título debe conservarse al cambiar de plano.");
+    titleInput.value = "   ";
+    titleInput.dispatchEvent(new app.Event("input", { bubbles: true }));
+    check(title.hidden, "Un título vacío o en blanco debe ocultarse.");
     const buttons = [...doc.querySelectorAll(".center-tool")];
     check(buttons.length === 6, "Debe haber seis botones de centros de acción.");
     doc.querySelector('[data-layer="upper"]').click();
@@ -364,6 +377,76 @@ document.getElementById("app").addEventListener("load", async () => {
     await nextFrame();
     check(doc.querySelector('[data-jet-mode="automatic"]').getAttribute("aria-pressed") === "true" && autoPath(),
       "Eliminar el chorro manual debe recuperar el modo automático.");
+
+    doc.querySelector('[data-jet-mode="manual"]').click();
+    const savedJet = app.activeHeightJet();
+    const source = app.eval("state.objects").find(object => object.layer === "upper" && object.type === "low");
+    app.resizeCenter(source, "east", app.centerBounds(source, 3).east + 40);
+    doc.querySelector('[data-layer="surface"]').click();
+    const fronts = app.eval("state.objects").filter(object => object.layer === "surface" && app.isFront(object));
+    doc.querySelector('[data-tool="high"][data-strength="weak"]').click();
+    pointerAt(map, "pointerdown", 300, 300);
+    const oldSurface = app.eval("state.objects").find(object => object.layer === "surface" && object.type === "high");
+    doc.querySelector('[data-layer="upper"]').click();
+    const copy = doc.querySelector("#copy-centers");
+    check(copy.textContent === "Copiar a superficie" && !copy.disabled,
+      "El botón debe indicar el destino y habilitarse cuando hay centros.");
+    const originalConfirm = app.confirm;
+    let confirmations = 0;
+    app.confirm = () => {
+      confirmations++;
+      return false;
+    };
+    copy.click();
+    check(confirmations === 1 && app.eval("state.objects").includes(oldSurface),
+      "Cancelar la sustitución debe conservar los centros del destino.");
+    app.confirm = () => {
+      confirmations++;
+      return true;
+    };
+    copy.click();
+    let surface = app.eval("state.objects").filter(object => object.layer === "surface" && app.isCenter(object));
+    check(confirmations === 2 && surface.length === 1 && !app.eval("state.objects").includes(oldSurface) &&
+      surface[0].id !== source.id && surface[0].type === source.type && surface[0].strength === source.strength &&
+      surface[0].x === source.x && surface[0].y === source.y && surface[0].shape.east === source.shape.east,
+      "La copia debe sustituir los centros y conservar tipo, intensidad, posición y deformación.");
+    check(fronts.every(front => app.eval("state.objects").includes(front)) && app.activeHeightJet() === savedJet,
+      "Copiar no debe eliminar frentes ni el chorro manual.");
+    await nextFrame();
+    check(app.eval("airState.sources").length === 1, "Copiar a superficie debe actualizar las fuentes del aire.");
+    doc.querySelector('[data-layer="surface"]').click();
+    check(copy.textContent === "Copiar a altura", "El destino debe cambiar al alternar el plano activo.");
+    const copied = surface[0];
+    app.resizeCenter(copied, "east", app.centerBounds(copied, 3).east + 30);
+    copied.x += 20;
+    check(copied.shape.east !== source.shape.east && copied.x !== source.x,
+      "Editar una copia no debe modificar el centro original.");
+    copy.click();
+    const upper = app.eval("state.objects").filter(object => object.layer === "upper" && app.isCenter(object));
+    check(confirmations === 3 && upper.length === 1 && upper[0].id !== copied.id &&
+      upper[0].x === copied.x && upper[0].shape.east === copied.shape.east &&
+      app.eval("state.objects").includes(savedJet) && fronts.every(front => app.eval("state.objects").includes(front)),
+      "Copiar a altura debe sustituir sus centros sin afectar al chorro ni a los frentes.");
+    doc.querySelector('[data-layer="upper"]').click();
+    await nextFrame();
+    check(app.activeHeightJet() === savedJet && doc.querySelector(".height-contour"),
+      "El campo de altura debe actualizarse conservando el chorro manual.");
+    doc.querySelector("#clear").click();
+    check(copy.disabled, "Sin centros en el plano activo no se debe poder copiar.");
+    app.copyCenters();
+    surface = app.eval("state.objects").filter(object => object.layer === "surface" && app.isCenter(object));
+    check(surface.length === 1 && surface[0] === copied,
+      "Copiar desde un plano sin centros no debe vaciar el destino.");
+    doc.querySelector('[data-layer="surface"]').click();
+    doc.querySelector('[data-tool="high"][data-strength="strong"]').click();
+    pointerAt(map, "pointerdown", 800, 200);
+    copy.click();
+    const newUpper = app.eval("state.objects").filter(object => object.layer === "upper" && app.isCenter(object));
+    check(confirmations === 4 && newUpper.length === 2 &&
+      newUpper.some(object => object.type === "low" && object.x === copied.x) &&
+      newUpper.some(object => object.type === "high" && object.strength === "strong"),
+      "Copiar varios centros a un destino vacío no debe pedir confirmación y debe conservar ambos.");
+    app.confirm = originalConfirm;
     result.textContent = "PASS";
   } catch (error) {
     result.textContent = `FAIL: ${error.message}`;

@@ -4,13 +4,16 @@ Editor didáctico de mapas meteorológicos para el Atlántico norte y Europa occ
 
 ## Uso
 
+- Escribe un **título del mapa** en el panel izquierdo para mostrarlo junto a la fecha. Se comparte entre ambos planos y se puede cambiar o borrar en cualquier momento.
 - Elige **Superficie** o **Altura · 500 hPa**. Cada plano mantiene sus propios elementos mientras la página esté abierta.
 - Elige en la tabla el botón de **Anticiclón** o **Borrasca** con la intensidad deseada y después haz clic en el mapa. En superficie, todos los centros contribuyen a un mismo campo de presión y sus isobaras en hPa se recalculan conjuntamente desde el primer centro. En altura, los centros modifican conjuntamente un campo de geopotencial, con curvas discontinuas en metros y flechas de viento.
+- Usa **Copiar a altura** o **Copiar a superficie** para copiar los centros del plano activo al otro, conservando su posición, intensidad y deformación. Los centros existentes en el destino se sustituyen tras una confirmación; los frentes y el chorro se conservan. Las copias se pueden editar independientemente.
 - Añade frentes en superficie desde sus botones. Arrastra los elementos para moverlos. Selecciona un elemento para eliminarlo; también puedes seleccionarlo con el teclado y moverlo con las flechas o borrarlo con Supr.
 - Los frentes muestran bandas de posible precipitación, que se pueden ocultar con el interruptor de la sección **Frentes**. La banda acompaña al frente al moverlo, curvarlo, girarlo o cambiar su longitud: es amplia por delante del cálido, estrecha cerca del frío y se extiende a ambos lados del ocluido.
 - Selecciona un centro y arrastra cualquiera de los cuatro tiradores para estirar su influencia hacia ese lado. En superficie las isobaras resultantes dependen de todos los centros. En un frente, arrastra el punto central para curvarlo, el tirador superior para girarlo o los extremos para cambiar su longitud y orientación. Al colocar o soltar un frente o su extremo cerca del extremo de otro, se unen automáticamente; puedes separarlos arrastrándolos de nuevo. Los tiradores también se pueden enfocar con Tab y manejar con las flechas.
 - En altura, el chorro **Automático** se recalcula al mover, añadir, eliminar o deformar centros de altura. Al elegir **Manual**, el chorro existente se mantiene y aparecen tiradores para deformarlo verticalmente; también puedes arrastrar el trazado completo. Las curvas y las flechas de altura se adaptan. Al modificar centros se conserva el trazado manual; al alternar modos se oculta o recupera sin perderse. Si no se encuentra un trazado automático para empezar a editar, ajusta los centros de altura.
 - En superficie, la fecha establece la distribución inicial de aire frío y cálido; los centros desplazan los colores siguiendo el viento. Cambiar de fecha reinicia esa distribución y eliminar el último centro la restablece. El interruptor y la capa de altura ocultan y pausan la simulación. **Limpiar capa** elimina únicamente los elementos del plano activo.
+- Usa **Descargar PNG** para guardar el mapa del plano visible, con su fecha, título y capas mostradas, sin la barra inferior de información interactiva.
 
 Los cambios se conservan solo mientras la página esté abierta: al recargarla se pierden.
 
@@ -33,14 +36,14 @@ Las tierras proceden de [Natural Earth, escala 1:110m](https://www.naturalearthd
 - `symbols.js`: representación y geometría de centros, frentes y chorro.
 - `pressure.js`: campos de presión y altura, curvas y cálculo del viento.
 - `air.js`, `wind.js` y `jet.js`: simulación de masas de aire, animación de flechas y chorro automático.
-- `app.js`: estado, herramientas e interacción con el mapa.
+- `app.js`: estado, herramientas e interacción con el mapa; `export.js`: descarga del recuadro en PNG.
 - `tests/`: pruebas ejecutables en el navegador.
 
 Los archivos JavaScript se cargan en el orden indicado en `index.html` y comparten funciones globales; no requieren compilación.
 
 ## Pruebas
 
-Abre `tests/transform.html`, `tests/pressure.html`, `tests/controls.html`, `tests/projection.html` y `tests/air.html` en el navegador y comprueba que muestran `PASS`.
+Abre `tests/transform.html`, `tests/pressure.html`, `tests/controls.html`, `tests/projection.html`, `tests/air.html` y `tests/export.html` en el navegador y comprueba que muestran `PASS`.
 
 ## Licencia
 

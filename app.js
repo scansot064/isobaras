@@ -1,11 +1,14 @@
 const map = document.getElementById("map");
 const objectsLayer = document.getElementById("objects");
 const dateInput = document.getElementById("date");
+const titleInput = document.getElementById("map-title-input");
+const mapTitle = document.getElementById("map-title");
 const airToggle = document.getElementById("air-toggle");
 const precipitationToggle = document.getElementById("precipitation-toggle");
 const status = document.getElementById("status");
 const instruction = document.getElementById("instruction");
 const deleteButton = document.getElementById("delete");
+const copyCentersButton = document.getElementById("copy-centers");
 const names = {
   high: "Anticiclón",
   low: "Borrasca",
@@ -71,7 +74,33 @@ function render() {
     objectsLayer.append(node);
   }
   deleteButton.disabled = state.selected === null;
+  copyCentersButton.disabled = !state.objects.some(object => object.layer === state.layer && isCenter(object));
   schedulePressureField();
+}
+
+function isCenter(object) {
+  return object.type === "high" || object.type === "low";
+}
+
+function copyCenters() {
+  const centers = state.objects.filter(object => object.layer === state.layer && isCenter(object));
+  if (!centers.length) {
+    status.textContent = "No hay centros de acción que copiar.";
+    return;
+  }
+  const destination = state.layer === "surface" ? "upper" : "surface";
+  const destinationName = destination === "upper" ? "altura" : "superficie";
+  if (state.objects.some(object => object.layer === destination && isCenter(object)) &&
+      !confirm(`¿Sustituir los centros de ${destinationName} por los de esta capa?`)) return;
+  state.objects = state.objects.filter(object => object.layer !== destination || !isCenter(object));
+  state.objects.push(...centers.map(object => ({
+    ...object,
+    id: state.nextId++,
+    layer: destination,
+    shape: { ...object.shape }
+  })));
+  render();
+  status.textContent = `Centros copiados a ${destinationName}.`;
 }
 
 function activeHeightJet() {
@@ -304,6 +333,7 @@ function switchLayer(layer) {
   state.selected = null;
   setTool(null);
   const upper = layer === "upper";
+  copyCentersButton.textContent = upper ? "Copiar a superficie" : "Copiar a altura";
   document.querySelectorAll("[data-layer]").forEach(button => {
     const active = button.dataset.layer === layer;
     button.classList.toggle("active", active);
@@ -334,10 +364,15 @@ document.querySelectorAll("[data-tool]").forEach(button => button.addEventListen
   setTool(active ? null : button.dataset.tool, active ? null : strength);
 }));
 dateInput.addEventListener("change", updateDate);
+titleInput.addEventListener("input", () => {
+  mapTitle.textContent = titleInput.value;
+  mapTitle.hidden = !titleInput.value.trim();
+});
 airToggle.addEventListener("change", updateDate);
 precipitationToggle.addEventListener("change", () => objectsLayer.classList.toggle("precipitation-hidden", !
   precipitationToggle.checked));
 deleteButton.addEventListener("click", removeSelected);
+copyCentersButton.addEventListener("click", copyCenters);
 document.getElementById("clear").addEventListener("click", () => {
   if (!state.objects.some(object => object.layer === state.layer)) {
     status.textContent = "Esta capa ya está vacía.";
