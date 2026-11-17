@@ -2,7 +2,8 @@ function cardText(card, bounds) {
   const lines = [];
   const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      return node.parentElement.closest("svg, .map-footer") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      return node.parentElement.closest("svg, .map-footer, #instruction") ?
+        NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
     }
   });
   const range = document.createRange();
@@ -36,6 +37,29 @@ function cardText(card, bounds) {
   return lines;
 }
 
+function wrapAttribution(context, text, width) {
+  const lines = [];
+  let line = "";
+  for (const word of text.split(" ")) {
+    const combined = line ? `${line} ${word}` : word;
+    if (context.measureText(combined).width <= width) {
+      line = combined;
+      continue;
+    }
+    if (line) lines.push(line);
+    line = "";
+    for (const character of word) {
+      if (line && context.measureText(line + character).width > width) {
+        lines.push(line);
+        line = "";
+      }
+      line += character;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 async function renderMapPng() {
   await new Promise(resolve => requestAnimationFrame(resolve));
   const card = document.querySelector(".map-card");
@@ -44,16 +68,29 @@ async function renderMapPng() {
   const mapBounds = map.getBoundingClientRect();
   if (!bounds.width || !bounds.height || !mapBounds.width) throw new Error("El mapa no está visible.");
   const borderWidth = parseFloat(getComputedStyle(card).borderTopWidth);
-  const height = card.querySelector(".map-footer").getBoundingClientRect().top - bounds.top + borderWidth;
+  const instructionBounds = document.getElementById("instruction").getBoundingClientRect();
+  const mapHeight = card.querySelector(".map-footer").getBoundingClientRect().top - bounds.top + borderWidth -
+    instructionBounds.height;
   const scale = Math.max(1, 1200 / mapBounds.width);
   const canvas = document.createElement("canvas");
-  canvas.width = Math.ceil(bounds.width * scale);
-  canvas.height = Math.ceil(height * scale);
   const context = canvas.getContext("2d");
   if (!context) throw new Error("No se puede crear la imagen del mapa.");
+  const attribution = document.getElementById("attribution");
+  const attributionStyle = getComputedStyle(attribution);
+  const attributionFont = `${attributionStyle.fontStyle} ${attributionStyle.fontWeight} ${attributionStyle.fontSize} ${attributionStyle.fontFamily}`;
+  const lineHeight = parseFloat(attributionStyle.lineHeight);
+  context.font = attributionFont;
+  const attributionLines = wrapAttribution(context, attribution.textContent.replace(/\s+/g, " ").trim(),
+    Math.max(1, bounds.width - 38));
+  const height = mapHeight + 24 + attributionLines.length * lineHeight;
+  canvas.width = Math.ceil(bounds.width * scale);
+  canvas.height = Math.ceil(height * scale);
   context.scale(scale, scale);
 
-  const text = cardText(card, bounds);
+  const text = cardText(card, bounds).map(line => ({
+    ...line,
+    y: line.y >= instructionBounds.bottom - bounds.top ? line.y - instructionBounds.height : line.y
+  }));
   const dots = [...card.querySelectorAll(".live-dot")].map(dot => {
     const rect = dot.getBoundingClientRect();
     return {
@@ -81,8 +118,8 @@ async function renderMapPng() {
     await image.decode();
     context.fillStyle = getComputedStyle(card).backgroundColor;
     context.fillRect(0, 0, bounds.width, height);
-    context.drawImage(image, mapBounds.left - bounds.left, mapBounds.top - bounds.top, mapBounds.width,
-      mapBounds.height);
+    context.drawImage(image, mapBounds.left - bounds.left, mapBounds.top - bounds.top - instructionBounds.height,
+      mapBounds.width, mapBounds.height);
     for (const dot of dots) {
       context.fillStyle = dot.color;
       context.beginPath();
@@ -97,6 +134,16 @@ async function renderMapPng() {
       if ("letterSpacing" in context) context.letterSpacing = line.letterSpacing;
       context.fillText(line.text, line.x, line.y + line.height / 2);
     }
+    context.fillStyle = attributionStyle.backgroundColor;
+    context.fillRect(borderWidth, mapHeight, bounds.width - 2 * borderWidth, height - mapHeight - borderWidth);
+    context.fillStyle = attributionStyle.color;
+    context.font = attributionFont;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    if ("letterSpacing" in context) context.letterSpacing = "0px";
+    attributionLines.forEach((line, index) => {
+      context.fillText(line, bounds.width / 2, mapHeight + 12 + (index + .5) * lineHeight);
+    });
     context.strokeStyle = getComputedStyle(card).borderTopColor;
     context.lineWidth = borderWidth;
     context.strokeRect(context.lineWidth / 2, context.lineWidth / 2, bounds.width - context.lineWidth,

@@ -439,6 +439,20 @@ input[type=text] {
   margin-right: 5px
 }
 
+.site-footer {
+  padding: 20px;
+  background: #e4ebea;
+  color: #52686a;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  overflow-wrap: anywhere
+}
+
+.site-footer a {
+  color: inherit
+}
+
 .canvas-area {
   padding: 38px 38px 28px;
   min-width: 0
