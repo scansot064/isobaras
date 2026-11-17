@@ -1,0 +1,47 @@
+# Isobaras · Laboratorio del tiempo
+
+Editor didáctico de mapas meteorológicos para el Atlántico norte y Europa occidental. Abre `index.html` en un navegador moderno; funciona sin conexión y no necesita instalar dependencias.
+
+## Uso
+
+- Elige **Superficie** o **Altura · 500 hPa**. Cada plano mantiene sus propios elementos mientras la página esté abierta.
+- Elige en la tabla el botón de **Anticiclón** o **Borrasca** con la intensidad deseada y después haz clic en el mapa. En superficie, todos los centros contribuyen a un mismo campo de presión y sus isobaras en hPa se recalculan conjuntamente desde el primer centro. En altura, los centros modifican conjuntamente un campo de geopotencial, con curvas discontinuas en metros y flechas de viento.
+- Añade frentes en superficie desde sus botones. Arrastra los elementos para moverlos. Selecciona un elemento para eliminarlo; también puedes seleccionarlo con el teclado y moverlo con las flechas o borrarlo con Supr.
+- Los frentes muestran bandas de posible precipitación, que se pueden ocultar con el interruptor de la sección **Frentes**. La banda acompaña al frente al moverlo, curvarlo, girarlo o cambiar su longitud: es amplia por delante del cálido, estrecha cerca del frío y se extiende a ambos lados del ocluido.
+- Selecciona un centro y arrastra cualquiera de los cuatro tiradores para estirar su influencia hacia ese lado. En superficie las isobaras resultantes dependen de todos los centros. En un frente, arrastra el punto central para curvarlo, el tirador superior para girarlo o los extremos para cambiar su longitud y orientación. Al colocar o soltar un frente o su extremo cerca del extremo de otro, se unen automáticamente; puedes separarlos arrastrándolos de nuevo. Los tiradores también se pueden enfocar con Tab y manejar con las flechas.
+- En altura, el chorro **Automático** se recalcula al mover, añadir, eliminar o deformar centros de altura. Al elegir **Manual**, el chorro existente se mantiene y aparecen tiradores para deformarlo verticalmente; también puedes arrastrar el trazado completo. Las curvas y las flechas de altura se adaptan. Al modificar centros se conserva el trazado manual; al alternar modos se oculta o recupera sin perderse. Si no se encuentra un trazado automático para empezar a editar, ajusta los centros de altura.
+- En superficie, la fecha establece la distribución inicial de aire frío y cálido; los centros desplazan los colores siguiendo el viento. Cambiar de fecha reinicia esa distribución y eliminar el último centro la restablece. El interruptor y la capa de altura ocultan y pausan la simulación. **Limpiar capa** elimina únicamente los elementos del plano activo.
+
+Los cambios se conservan solo mientras la página esté abierta: al recargarla se pierden.
+
+## Alcance meteorológico
+
+Es un esquema para aprender, no un pronóstico ni un análisis meteorológico real. La temperatura inicial es un gradiente idealizado por latitud y estación, con una zona relativamente más fresca en torno a Terranova y el Atlántico occidental: el aire frío se extiende más al sur en invierno y se concentra al norte en verano, con transiciones progresivas. El viento de los centros de superficie transporta ese campo en una malla mediante una aproximación de advección; entra aire estacional por los bordes. El tiempo está acelerado y los colores no representan temperaturas medidas. Las bandas de precipitación son esquemáticas: no indican una probabilidad calculada ni lluvia garantizada. No se modelan las masas reales, la fricción, la radiación, la humedad ni el efecto de los frentes o del chorro de altura sobre la temperatura.
+
+En superficie se suman influencias idealizadas a una presión de referencia de 1013 hPa y se trazan isobaras cada 4 hPa sobre un campo interpolado. Las flechas siguen trayectorias del mismo viento esquemático que desplaza los colores: una aproximación geostrófica del hemisferio norte, paralela a las isobaras, sin fricción ni velocidades reales. Las letras indican las posiciones de las influencias introducidas, que al interactuar no siempre coinciden con máximos o mínimos del campo resultante.
+
+En altura se suman las influencias a un gradiente latitudinal idealizado, incluso sin centros, y se trazan curvas cada 60 metros. Las flechas siguen el viento aproximado de ese campo. El chorro automático selecciona una trayectoria orientativa de viento del oeste relativamente intenso; sus ondulaciones e intensidad dependen del campo de 500 hPa, no del mapa de superficie. El modo manual ajusta el campo para que el trazado editado siga aproximadamente una curva de altura, conservando las influencias de los centros. Es una representación didáctica: la corriente real suele analizarse a niveles más altos y no se calcula como un pronóstico.
+
+## Cartografía
+
+Las tierras proceden de [Natural Earth, escala 1:110m](https://www.naturalearthdata.com/), datos de dominio público. El mapa usa una proyección cónica equivalente de Albers, centrada cerca de la península ibérica (7°O, 44°N; paralelos estándar 35°N y 65°N).
+
+## Organización del código
+
+- `index.html` y `style.css`: estructura y presentación de la interfaz.
+- `map.js`: proyección, cartografía y cuadrícula; `assets/land.js` contiene datos geográficos compactos de Natural Earth.
+- `symbols.js`: representación y geometría de centros, frentes y chorro.
+- `pressure.js`: campos de presión y altura, curvas y cálculo del viento.
+- `air.js`, `wind.js` y `jet.js`: simulación de masas de aire, animación de flechas y chorro automático.
+- `app.js`: estado, herramientas e interacción con el mapa.
+- `tests/`: pruebas ejecutables en el navegador.
+
+Los archivos JavaScript se cargan en el orden indicado en `index.html` y comparten funciones globales; no requieren compilación.
+
+## Pruebas
+
+Abre `tests/transform.html`, `tests/pressure.html`, `tests/controls.html`, `tests/projection.html` y `tests/air.html` en el navegador y comprueba que muestran `PASS`.
+
+## Licencia
+
+El proyecto se distribuye bajo [Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/deed.es). Para la atribución, indica «Isobaras · Laboratorio del tiempo, scansot064 y colaboradores», enlaza al repositorio y a la licencia e indica los cambios realizados. Los datos de Natural Earth mencionados arriba son de dominio público y no quedan sujetos a esta licencia.
