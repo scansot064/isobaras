@@ -104,9 +104,12 @@ document.getElementById("app").addEventListener("load", async () => {
     const titled = await pixels(await app.renderMapPng());
     const mapTop = Math.floor((map.top - card.top - instructionHeight) * scale);
     check(differences(empty, titled, 0, mapTop) > 20, "El título debe aparecer en la banda superior del PNG.");
-    const date = doc.querySelector("#date");
-    date.value = "2024-01-19";
-    date.dispatchEvent(new app.Event("change", { bubbles: true }));
+    const month = doc.querySelector("#date-month");
+    month.value = "01";
+    month.dispatchEvent(new app.Event("change", { bubbles: true }));
+    const day = doc.querySelector("#date-day");
+    day.value = "19";
+    day.dispatchEvent(new app.Event("change", { bubbles: true }));
     const dated = await pixels(await app.renderMapPng());
     check(differences(titled, dated, 0, mapTop) > 10, "La fecha mostrada debe aparecer en el PNG.");
 

@@ -1,10 +1,19 @@
 const map = document.getElementById("map");
 const objectsLayer = document.getElementById("objects");
-const dateInput = document.getElementById("date");
+const dateDay = document.getElementById("date-day");
+const dateMonth = document.getElementById("date-month");
+const dateYear = document.getElementById("date-year");
 const titleInput = document.getElementById("map-title-input");
 const mapTitle = document.getElementById("map-title");
+const inlineTitle = document.getElementById("inline-title");
+const inlineDay = document.getElementById("inline-day");
+const inlineMonth = document.getElementById("inline-month");
+const inlineYear = document.getElementById("inline-year");
 const airToggle = document.getElementById("air-toggle");
 const precipitationToggle = document.getElementById("precipitation-toggle");
+const desktopAir = document.getElementById("desktop-air");
+const desktopPrecipitation = document.getElementById("desktop-precipitation");
+const desktopCopy = document.getElementById("desktop-copy");
 const status = document.getElementById("status");
 const instruction = document.getElementById("instruction");
 const deleteButton = document.getElementById("delete");
@@ -31,24 +40,52 @@ const state = {
 };
 let pressureFrame = null;
 const today = new Date();
-dateInput.value =
-  `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+let selectedDay = String(today.getDate()).padStart(2, "0");
+let selectedMonth = String(today.getMonth() + 1).padStart(2, "0");
+let selectedYear = "";
+
+for (const select of [dateDay, inlineDay, dateMonth, inlineMonth]) {
+  const isDay = select === dateDay || select === inlineDay;
+  select.add(new Option(isDay ? "Día" : "Mes", ""));
+  for (let value = 1; value <= (isDay ? 31 : 12); value++) {
+    const text = String(value).padStart(2, "0");
+    select.add(new Option(text, text));
+  }
+}
+
+function mapDate() {
+  return selectedDay && selectedMonth ? `${selectedMonth}-${selectedDay}` : "";
+}
+
+function syncDateControls() {
+  const days = selectedMonth ? new Date(2000, Number(selectedMonth), 0).getDate() : 31;
+  if (Number(selectedDay) > days) selectedDay = String(days).padStart(2, "0");
+  for (const select of [dateDay, inlineDay]) {
+    for (const option of select.options) option.disabled = Number(option.value) > days;
+    select.value = selectedDay;
+  }
+  dateMonth.value = inlineMonth.value = selectedMonth;
+  dateYear.value = inlineYear.value = selectedYear;
+  document.getElementById("map-date").textContent = mapDate() ? `${selectedDay}.${selectedMonth}` : "SIN FECHA";
+  document.getElementById("map-year").textContent = selectedYear;
+  document.querySelector(".year-placeholder").hidden = Boolean(selectedYear);
+}
 
 function updateDate() {
-  if (!dateInput.value) {
+  syncDateControls();
+  desktopAir.checked = airToggle.checked;
+  if (!mapDate()) {
     status.textContent = "Selecciona una fecha para simular las masas de aire.";
     configureAir("", false);
-    document.getElementById("map-date").textContent = "SIN FECHA";
     return;
   }
-  configureAir(dateInput.value, airToggle.checked && state.layer === "surface");
-  const [year, month, day] = dateInput.value.split("-");
-  document.getElementById("map-date").textContent = `${day}.${month}.${year}`;
+  configureAir(`2000-${mapDate()}`, airToggle.checked && state.layer === "surface");
 }
 
 function setTool(tool, strength = null) {
   state.tool = tool;
   state.strength = strength;
+  map.classList.toggle("map-placing", Boolean(tool));
   document.querySelectorAll("[data-tool]").forEach(button => {
     const active = button.dataset.tool === tool && (button.dataset.strength || null) === strength;
     button.classList.toggle("selected", active);
@@ -74,7 +111,10 @@ function render() {
     objectsLayer.append(node);
   }
   deleteButton.disabled = state.selected === null;
+  document.getElementById("mobile-delete").disabled = state.selected === null;
   copyCentersButton.disabled = !state.objects.some(object => object.layer === state.layer && isCenter(object));
+  desktopCopy.disabled = copyCentersButton.disabled;
+  if (typeof updateMobileTargets === "function") updateMobileTargets();
   schedulePressureField();
 }
 
@@ -334,12 +374,16 @@ function switchLayer(layer) {
   setTool(null);
   const upper = layer === "upper";
   copyCentersButton.textContent = upper ? "Copiar a superficie" : "Copiar a altura";
+  desktopCopy.textContent = copyCentersButton.textContent;
   document.querySelectorAll("[data-layer]").forEach(button => {
     const active = button.dataset.layer === layer;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
   document.getElementById("front-section").hidden = upper;
+  document.getElementById("mobile-fronts").hidden = upper;
+  document.getElementById("desktop-surface-options").hidden = upper;
+  document.getElementById("desktop-jet-options").hidden = !upper;
   document.getElementById("jet-section").hidden = !upper;
   document.querySelector(".air-section").hidden = upper;
   document.getElementById("layer-help").textContent = upper ? "Geopotencial · alturas esquemáticas en metros" :
@@ -363,14 +407,43 @@ document.querySelectorAll("[data-tool]").forEach(button => button.addEventListen
   const active = state.tool === button.dataset.tool && state.strength === strength;
   setTool(active ? null : button.dataset.tool, active ? null : strength);
 }));
-dateInput.addEventListener("change", updateDate);
+for (const select of [dateDay, inlineDay, dateMonth, inlineMonth]) {
+  select.addEventListener("change", () => {
+    if (select === dateDay || select === inlineDay) selectedDay = select.value;
+    else selectedMonth = select.value;
+    updateDate();
+  });
+}
+for (const input of [dateYear, inlineYear]) {
+  input.addEventListener("input", () => {
+    selectedYear = input.value.replace(/\D/g, "").slice(0, 6);
+    syncDateControls();
+  });
+}
 titleInput.addEventListener("input", () => {
   mapTitle.textContent = titleInput.value;
   mapTitle.hidden = !titleInput.value.trim();
+  inlineTitle.value = titleInput.value;
+  document.querySelector(".title-placeholder").hidden = !mapTitle.hidden;
+});
+inlineTitle.addEventListener("input", () => {
+  titleInput.value = inlineTitle.value;
+  titleInput.dispatchEvent(new Event("input"));
 });
 airToggle.addEventListener("change", updateDate);
-precipitationToggle.addEventListener("change", () => objectsLayer.classList.toggle("precipitation-hidden", !
-  precipitationToggle.checked));
+precipitationToggle.addEventListener("change", () => {
+  desktopPrecipitation.checked = precipitationToggle.checked;
+  objectsLayer.classList.toggle("precipitation-hidden", !precipitationToggle.checked);
+});
+desktopAir.addEventListener("change", () => {
+  airToggle.checked = desktopAir.checked;
+  updateDate();
+});
+desktopPrecipitation.addEventListener("change", () => {
+  precipitationToggle.checked = desktopPrecipitation.checked;
+  precipitationToggle.dispatchEvent(new Event("change"));
+});
+desktopCopy.addEventListener("click", copyCenters);
 deleteButton.addEventListener("click", removeSelected);
 copyCentersButton.addEventListener("click", copyCenters);
 document.getElementById("clear").addEventListener("click", () => {

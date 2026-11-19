@@ -38,8 +38,12 @@ document.getElementById("app").addEventListener("load", async () => {
 
     doc.querySelector("#map-title-input").value = "Situación de clase";
     doc.querySelector("#map-title-input").dispatchEvent(new app.Event("input"));
-    doc.querySelector("#date").value = "2024-02-29";
-    doc.querySelector("#date").dispatchEvent(new app.Event("change"));
+    doc.querySelector("#date-month").value = "02";
+    doc.querySelector("#date-month").dispatchEvent(new app.Event("change"));
+    doc.querySelector("#date-day").value = "29";
+    doc.querySelector("#date-day").dispatchEvent(new app.Event("change"));
+    doc.querySelector("#date-year").value = "2024";
+    doc.querySelector("#date-year").dispatchEvent(new app.Event("input"));
     doc.querySelector("#air-toggle").click();
     doc.querySelector("#precipitation-toggle").click();
     const surface = place('[data-tool="high"][data-strength="strong"]', 400, 300);
@@ -67,8 +71,8 @@ document.getElementById("app").addEventListener("load", async () => {
     check(download && download.name === "isobaras.json", "Guardar debe descargar un archivo JSON.");
     const saved = await (await app.fetch(download.url)).text();
     const data = JSON.parse(saved);
-    check(data.format === "isobaras" && data.version === 1 && data.objects.length === 4 &&
-      data.title === "Situación de clase" && data.date === "2024-02-29" &&
+    check(data.format === "isobaras" && data.version === 2 && data.objects.length === 4 &&
+      data.title === "Situación de clase" && data.date === "02-29" && data.year === "2024" &&
       data.airValues.length === app.eval("AIR_COLUMNS * AIR_ROWS"),
       "El archivo debe contener los dos planos, los metadatos y la distribución del aire.");
 
@@ -84,7 +88,8 @@ document.getElementById("app").addEventListener("load", async () => {
     const restoredJet = state.objects.find(object => object.id === jet.id);
     check(doc.querySelector("#status").textContent === "Mapa cargado." && state.layer === "upper" &&
       state.jetMode === "manual" && state.manualJetId === jet.id && state.selected === null &&
-      doc.querySelector("#map-title").textContent === data.title && doc.querySelector("#date").value === data.date &&
+      doc.querySelector("#map-title").textContent === data.title && doc.querySelector("#date-day").value === "29" &&
+      doc.querySelector("#date-month").value === "02" && doc.querySelector("#date-year").value === data.year &&
       !doc.querySelector("#air-toggle").checked && !doc.querySelector("#precipitation-toggle").checked &&
       doc.querySelector("#objects").classList.contains("precipitation-hidden"),
       "La carga debe restaurar los ajustes, el plano activo y la interfaz.");
@@ -103,7 +108,8 @@ document.getElementById("app").addEventListener("load", async () => {
     check(JSON.stringify(app.mapDocument()) === before && doc.querySelector("#status").textContent.includes("cancelada"),
       "Cancelar la carga debe conservar el mapa actual.");
     app.confirm = () => true;
-    for (const invalid of ["{", JSON.stringify({ ...data, version: 2 }),
+    for (const invalid of ["{", JSON.stringify({ ...data, version: 3 }),
+      JSON.stringify({ ...data, date: "02-30" }), JSON.stringify({ ...data, year: "abc" }),
       JSON.stringify({ ...data, objects: [data.objects[0], data.objects[0]] }),
       JSON.stringify({ ...data, objects: data.objects.map(object => object.manualJet ?
         { ...object, referenceHeight: 1e100 } : object) }),
@@ -121,9 +127,18 @@ document.getElementById("app").addEventListener("load", async () => {
       "El chorro manual debe recuperarse al volver a activarlo.");
     await load(JSON.stringify({ ...automatic, date: "", layer: "surface", objects: [] }));
     await nextFrame();
-    check(doc.querySelector("#date").value === "" && !app.eval("airState").enabled &&
+    check(doc.querySelector("#date-day").value === "" && doc.querySelector("#date-month").value === "" &&
+      !app.eval("airState").enabled &&
       app.eval("airState").values[0] === data.airValues[0] && state.objects.length === 0,
       "También debe poder cargarse un mapa sin fecha ni centros, conservando el aire guardado.");
+    const legacy = { ...data, version: 1, date: "2024-02-29" };
+    delete legacy.year;
+    await load(JSON.stringify(legacy));
+    check(doc.querySelector("#date-day").value === "29" && doc.querySelector("#date-month").value === "02" &&
+      doc.querySelector("#date-year").value === "2024", "Los mapas antiguos deben conservar su fecha y año.");
+    await load(JSON.stringify({ ...data, year: "" }));
+    check(doc.querySelector("#date-year").value === "" && doc.querySelector("#inline-year").value === "" &&
+      app.mapDocument().year === "", "El año opcional vacío debe conservarse al guardar y cargar.");
     app.confirm = originalConfirm;
     result.textContent = "PASS";
   } catch (error) {

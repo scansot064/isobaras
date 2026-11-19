@@ -14,6 +14,7 @@
   <script defer src="wind.js"></script>
   <script defer src="air.js"></script>
   <script defer src="app.js"></script>
+  <script defer src="mobile.js"></script>
   <script defer src="export.js"></script>
   <script defer src="save.js"></script>
 </head>
@@ -43,6 +44,13 @@
 
       <label class="field-label" for="map-title-input">TÍTULO DEL MAPA</label>
       <input id="map-title-input" type="text" placeholder="Escribe un título">
+
+      <label class="field-label" for="date-day">FECHA DE LA SITUACIÓN</label>
+      <div class="date-fields">
+        <select id="date-day" aria-label="Día"></select>
+        <select id="date-month" aria-label="Mes"></select>
+        <input id="date-year" type="text" inputmode="numeric" maxlength="6" placeholder="Año" aria-label="Año opcional">
+      </div>
 
       <section class="control-section">
         <div class="section-title"><span>01</span><h3>Plano de análisis</h3></div>
@@ -105,8 +113,6 @@
 
       <section class="control-section air-section">
         <div class="section-title"><span>04</span><h3>Masas de aire</h3></div>
-        <label class="field-label" for="date">FECHA DE LA SITUACIÓN</label>
-        <input id="date" type="date">
         <label class="switch-row"><span>Simular masas de aire<small>Temperatura y viento orientativos</small></span><input id="air-toggle" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label>
         <div class="air-legend"><span><i class="legend-dot polar"></i>Polar</span><span><i class="legend-dot temperate"></i>Templada</span><span><i class="legend-dot tropical"></i>Tropical</span></div>
       </section>
@@ -133,9 +139,10 @@
         <div class="map-toolbar">
           <span>
             <i class="live-dot"></i> <strong id="map-layer">SUPERFICIE</strong>
-            <span class="toolbar-separator">/</span><span id="map-date"></span>
+            <span class="toolbar-separator">/</span><span class="inline-date"><span id="map-date"></span><span class="inline-date-selectors"><select id="inline-day" aria-label="Día del mapa"></select><select id="inline-month" aria-label="Mes del mapa"></select></span></span>
+            <label class="inline-year"><span id="map-year"></span><span class="year-placeholder">Año</span><input id="inline-year" type="text" inputmode="numeric" maxlength="6" placeholder="Año" aria-label="Año opcional del mapa"></label>
           </span>
-          <strong id="map-title" hidden></strong>
+          <label class="inline-title"><strong id="map-title" hidden></strong><span class="title-placeholder">Añadir título</span><input id="inline-title" type="text" aria-label="Editar título del mapa" placeholder="Añadir título"></label>
           <span>ATLÁNTICO NORTE & EUROPA</span>
         </div>
         <div class="map-instruction" id="instruction">Selecciona una herramienta y haz clic en el mapa para añadirla</div>
@@ -193,6 +200,56 @@
       <div class="bottom-notes"><p><span>ⓘ</span> Los colores simulan el desplazamiento del aire según la estación y el viento dibujado. La evolución está acelerada y es orientativa.</p><p>No es un pronóstico meteorológico.</p></div>
     </section>
   </main>
+  <div class="mobile-dock" aria-label="Herramientas del mapa">
+    <div class="mobile-tools" id="mobile-tools" hidden>
+      <p>Plano de análisis</p>
+      <div class="mobile-layers" role="group" aria-label="Plano de análisis">
+        <button type="button" class="active" data-layer="surface" aria-pressed="true">Superficie</button>
+        <button type="button" data-layer="upper" aria-pressed="false">Altura · 500 hPa</button>
+      </div>
+      <p>Centros de acción</p>
+      <div class="mobile-tool-grid">
+        <button type="button" class="high" data-tool="high" data-strength="weak" aria-label="Anticiclón débil" aria-pressed="false">A débil</button>
+        <button type="button" class="high" data-tool="high" data-strength="medium" aria-label="Anticiclón de intensidad media" aria-pressed="false">A media</button>
+        <button type="button" class="high" data-tool="high" data-strength="strong" aria-label="Anticiclón fuerte" aria-pressed="false">A fuerte</button>
+        <button type="button" class="low" data-tool="low" data-strength="weak" aria-label="Borrasca débil" aria-pressed="false">B débil</button>
+        <button type="button" class="low" data-tool="low" data-strength="medium" aria-label="Borrasca de intensidad media" aria-pressed="false">B media</button>
+        <button type="button" class="low" data-tool="low" data-strength="strong" aria-label="Borrasca fuerte" aria-pressed="false">B fuerte</button>
+      </div>
+      <div id="mobile-fronts">
+        <p>Frentes</p>
+        <div class="mobile-tool-grid">
+          <button type="button" data-tool="cold" aria-pressed="false">Frío</button>
+          <button type="button" data-tool="warm" aria-pressed="false">Cálido</button>
+          <button type="button" data-tool="occluded" aria-pressed="false">Ocluido</button>
+        </div>
+      </div>
+    </div>
+    <div class="desktop-options" id="desktop-options" hidden>
+      <div id="desktop-surface-options">
+        <label class="switch-row"><span>Simular masas de aire</span><input id="desktop-air" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label>
+        <label class="switch-row"><span>Posible precipitación</span><input id="desktop-precipitation" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label>
+      </div>
+      <div id="desktop-jet-options" hidden>
+        <p>Corriente en chorro</p>
+        <div class="mobile-layers" role="group" aria-label="Modo de corriente en chorro">
+          <button type="button" class="active" data-jet-mode="automatic" aria-pressed="true">Automática</button>
+          <button type="button" data-jet-mode="manual" aria-pressed="false">Manual</button>
+        </div>
+      </div>
+      <button type="button" id="desktop-copy" disabled>Copiar a altura</button>
+      <p class="helper">Sustituye los centros del otro plano; conserva los demás elementos.</p>
+    </div>
+    <div class="mobile-actions">
+      <button type="button" id="mobile-add" aria-expanded="false" aria-controls="mobile-tools">Añadir</button>
+      <button type="button" id="desktop-options-button" aria-expanded="false" aria-controls="desktop-options">Capas</button>
+      <button type="button" id="zoom-out" aria-label="Alejar mapa">−</button>
+      <button type="button" id="zoom-in" aria-label="Acercar mapa">+</button>
+      <button type="button" id="zoom-reset" aria-label="Mostrar todo el mapa">100%</button>
+      <button type="button" id="mobile-pan" aria-pressed="false">Mover mapa</button>
+      <button type="button" id="mobile-delete" aria-label="Eliminar selección" disabled>Eliminar</button>
+    </div>
+  </div>
   <footer class="site-footer" id="attribution">
     <span>© Sergio Cano Soto · IES Alhendín · </span><a href="mailto:scansot064@g.educaand.es">scansot064@g.educaand.es</a><span> · </span><a href="https://creativecommons.org/licenses/by-nc/4.0/deed.es" rel="license">CC BY-NC 4.0</a>
   </footer>

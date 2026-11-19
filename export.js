@@ -2,7 +2,7 @@ function cardText(card, bounds) {
   const lines = [];
   const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      return node.parentElement.closest("svg, .map-footer, #instruction") ?
+      return node.parentElement.closest("svg, .map-footer, #instruction, .title-placeholder, .year-placeholder, select") ?
         NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
     }
   });
@@ -109,6 +109,9 @@ async function renderMapPng() {
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   clone.setAttribute("width", "1200");
   clone.setAttribute("height", "700");
+  clone.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
+  clone.querySelectorAll(".mobile-center-hit").forEach(node => node.remove());
+  clone.querySelectorAll(".transform-handle").forEach(node => node.setAttribute("r", "8"));
   const svgUrl = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], {
     type: "image/svg+xml"
   }));

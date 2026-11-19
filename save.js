@@ -1,9 +1,10 @@
 function mapDocument() {
   return {
     format: "isobaras",
-    version: 1,
+    version: 2,
     title: titleInput.value,
-    date: dateInput.value,
+    date: mapDate(),
+    year: selectedYear,
     layer: state.layer,
     jetMode: state.jetMode,
     airEnabled: airToggle.checked,
@@ -19,14 +20,25 @@ function validateMapDocument(data) {
   };
   const numberIn = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
   if (!data || typeof data !== "object" || Array.isArray(data) || data.format !== "isobaras" ||
-      data.version !== 1 || typeof data.title !== "string" || typeof data.date !== "string" ||
+      ![1, 2].includes(data.version) || typeof data.title !== "string" || typeof data.date !== "string" ||
       !["surface", "upper"].includes(data.layer) || !["automatic", "manual"].includes(data.jetMode) ||
       typeof data.airEnabled !== "boolean" || typeof data.precipitationEnabled !== "boolean" ||
       !Array.isArray(data.objects)) invalid();
-  const date = document.createElement("input");
-  date.type = "date";
-  date.value = data.date;
-  if (date.value !== data.date) invalid();
+  let date = data.date;
+  let year = data.year;
+  if (data.version === 1) {
+    const legacyDate = document.createElement("input");
+    legacyDate.type = "date";
+    legacyDate.value = date;
+    if (legacyDate.value !== date) invalid();
+    year = date ? date.slice(0, -6) : "";
+    date = date ? date.slice(-5) : "";
+  }
+  if (typeof year !== "string" || !/^\d{0,6}$/.test(year) ||
+      (date && (!/^\d{2}-\d{2}$/.test(date) || (() => {
+        const [month, day] = date.split("-").map(Number);
+        return month < 1 || month > 12 || day < 1 || day > new Date(2000, month, 0).getDate();
+      })()))) invalid();
   if (data.airValues !== null && (!Array.isArray(data.airValues) ||
       data.airValues.length !== AIR_COLUMNS * AIR_ROWS || !data.airValues.every(value => numberIn(value, 0, 1)))) {
     invalid();
@@ -92,7 +104,7 @@ function validateMapDocument(data) {
     };
   });
   if (data.jetMode === "manual" && manualJetId === null) invalid();
-  return { ...data, objects, manualJetId };
+  return { ...data, date, year, objects, manualJetId };
 }
 
 function restoreMap(data) {
@@ -102,7 +114,8 @@ function restoreMap(data) {
   state.drag = null;
   titleInput.value = data.title;
   titleInput.dispatchEvent(new Event("input"));
-  dateInput.value = data.date;
+  [selectedMonth, selectedDay] = data.date ? data.date.split("-") : ["", ""];
+  selectedYear = data.year;
   airToggle.checked = data.airEnabled;
   precipitationToggle.checked = data.precipitationEnabled;
   precipitationToggle.dispatchEvent(new Event("change"));

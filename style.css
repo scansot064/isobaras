@@ -238,6 +238,23 @@ input[type=text] {
   margin-bottom: 20px
 }
 
+.date-fields {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px
+}
+
+.date-fields select {
+  min-width: 0;
+  flex: 1;
+  padding: 0 4px
+}
+
+.date-fields input {
+  width: 70px;
+  min-width: 0
+}
+
 .tool-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -695,6 +712,250 @@ input[type=text] {
   text-align: right
 }
 
+.mobile-dock {
+  display: none
+}
+
+.inline-title {
+  display: contents
+}
+
+.inline-year {
+  display: contents
+}
+
+.title-placeholder,
+.year-placeholder,
+#inline-title,
+.inline-date-selectors,
+#inline-year,
+#desktop-options-button {
+  display: none
+}
+
+@media(min-width:651px) {
+  .workspace {
+    display: block
+  }
+
+  .sidebar {
+    display: none
+  }
+
+  .canvas-area {
+    padding: 24px 32px 32px
+  }
+
+  .canvas-heading {
+    margin-bottom: 16px
+  }
+
+  .map-card {
+    max-width: min(100%, max(320px, calc(171.428vh - 463px)));
+    margin-inline: auto
+  }
+
+  .inline-date,
+  .inline-title,
+  .inline-year {
+    position: relative
+  }
+
+  .inline-date {
+    display: inline-block;
+    min-width: 85px;
+    padding: 7px 22px 7px 8px;
+    border: 1px solid #dce5e3;
+    border-radius: 5px;
+    cursor: pointer
+  }
+
+  .inline-date::after {
+    content: "\270e";
+    position: absolute;
+    right: 7px;
+    color: #76908b;
+    pointer-events: none
+  }
+
+  .inline-date-selectors {
+    display: flex;
+    position: absolute;
+    inset: 0
+  }
+
+  .inline-date-selectors select {
+    width: 50%;
+    height: 100%;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer
+  }
+
+  .inline-date-selectors select:focus {
+    opacity: 1
+  }
+
+  .inline-year {
+    display: inline-block;
+    min-width: 48px;
+    padding: 7px 5px;
+    border: 1px solid #dce5e3;
+    border-radius: 5px;
+    text-align: center;
+    letter-spacing: normal
+  }
+
+  .year-placeholder {
+    display: inline
+  }
+
+  .inline-title {
+    display: block;
+    flex: 1 1 180px;
+    min-width: 100px;
+    text-align: center;
+    color: #607b7a;
+    font-size: 12px;
+    letter-spacing: normal
+  }
+
+  .title-placeholder {
+    display: inline;
+    color: #91a1a1
+  }
+
+  .inline-title::after {
+    content: " \270e";
+    color: #91a1a1
+  }
+
+  #inline-title,
+  #inline-year {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer
+  }
+
+  #inline-title:focus,
+  #inline-year:focus {
+    opacity: 1;
+    cursor: text
+  }
+
+  .mobile-dock {
+    display: block;
+    position: fixed;
+    z-index: 20;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    padding: 8px;
+    border: 1px solid #dce5e3;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 6px 24px #233d3a33
+  }
+
+  .mobile-actions {
+    display: flex;
+    gap: 6px
+  }
+
+  .mobile-dock button {
+    min-height: 40px;
+    padding: 7px 12px;
+    border: 1px solid #dce5e3;
+    border-radius: 6px;
+    background: #fff;
+    color: #344b51;
+    font-size: 11px;
+    font-weight: 700
+  }
+
+  .mobile-dock button:disabled {
+    opacity: .4
+  }
+
+  .mobile-dock button[aria-pressed=true],
+  .mobile-dock button[aria-expanded=true] {
+    border-color: #6e9e9a;
+    background: #dcece8
+  }
+
+  .mobile-tools,
+  .desktop-options {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    width: 350px;
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 15px;
+    border: 1px solid #dce5e3;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 6px 24px #233d3a26
+  }
+
+  .desktop-options {
+    left: 80px
+  }
+
+  .mobile-tools p,
+  .desktop-options p:not(.helper) {
+    margin: 8px 0;
+    color: #52686a;
+    font-size: 11px;
+    font-weight: 700
+  }
+
+  .mobile-tool-grid,
+  .mobile-layers {
+    display: grid;
+    gap: 5px
+  }
+
+  .mobile-tool-grid {
+    grid-template-columns: repeat(3, 1fr)
+  }
+
+  .mobile-layers {
+    grid-template-columns: repeat(2, 1fr)
+  }
+
+  .mobile-tool-grid button.high {
+    background: #e8f1f1;
+    color: #4d8c91
+  }
+
+  .mobile-tool-grid button.low {
+    background: #f8ece5;
+    color: #ce805c
+  }
+
+  .desktop-options .switch-row:first-child {
+    margin-top: 0
+  }
+
+  #desktop-copy {
+    width: 100%;
+    margin-top: 16px
+  }
+
+  #desktop-options-button {
+    display: block
+  }
+
+  .site-footer {
+    padding-bottom: 90px
+  }
+}
+
 @media(max-width:900px) {
   .workspace {
     grid-template-columns: 265px minmax(0, 1fr)
@@ -731,7 +992,7 @@ input[type=text] {
   }
 
   .header-tag {
-    font-size: 8px
+    display: none
   }
 
   .workspace {
@@ -781,6 +1042,100 @@ input[type=text] {
   .bottom-notes p:last-child {
     text-align: left;
     margin-top: 5px
+  }
+
+  .site-footer {
+    padding-bottom: 90px
+  }
+
+  .map-wrap svg {
+    touch-action: pan-y;
+    scroll-margin: 20px 0 85px
+  }
+
+  .map-wrap svg.map-placing,
+  .map-wrap svg.map-panning,
+  .map-object {
+    touch-action: none
+  }
+
+  .mobile-dock {
+    display: block;
+    position: fixed;
+    z-index: 20;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid #dce5e3;
+    box-shadow: 0 -4px 18px #233d3a26
+  }
+
+  .mobile-actions {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px
+  }
+
+  .mobile-dock button {
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px 2px;
+    border: 1px solid #dce5e3;
+    border-radius: 6px;
+    background: #fff;
+    color: #344b51;
+    font-size: 10px;
+    font-weight: 700
+  }
+
+  .mobile-dock button:disabled {
+    opacity: .4
+  }
+
+  .mobile-dock button[aria-pressed=true],
+  .mobile-dock button[aria-expanded=true] {
+    background: #dcece8;
+    border-color: #6e9e9a
+  }
+
+  .mobile-tools {
+    padding: 0 0 10px;
+    max-height: 55vh;
+    overflow-y: auto;
+    overscroll-behavior: contain
+  }
+
+  .mobile-tools p {
+    margin: 8px 0;
+    color: #52686a;
+    font-size: 11px;
+    font-weight: 700
+  }
+
+  .mobile-tool-grid,
+  .mobile-layers {
+    display: grid;
+    gap: 5px
+  }
+
+  .mobile-tool-grid {
+    grid-template-columns: repeat(3, 1fr)
+  }
+
+  .mobile-layers {
+    grid-template-columns: repeat(2, 1fr)
+  }
+
+  .mobile-tool-grid button.high {
+    background: #e8f1f1;
+    color: #4d8c91
+  }
+
+  .mobile-tool-grid button.low {
+    background: #f8ece5;
+    color: #ce805c
   }
 }
 
