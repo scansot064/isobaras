@@ -716,19 +716,6 @@ input[type=text] {
   display: none
 }
 
-.inline-title {
-  display: contents
-}
-
-.inline-year {
-  display: contents
-}
-
-.title-placeholder,
-.year-placeholder,
-#inline-title,
-.inline-date-selectors,
-#inline-year,
 #desktop-options-button {
   display: none
 }
@@ -754,99 +741,101 @@ input[type=text] {
     max-width: min(100%, max(320px, calc(171.428vh - 463px)));
     margin-inline: auto
   }
+}
 
-  .inline-date,
-  .inline-title,
-  .inline-year {
-    position: relative
-  }
+.inline-date,
+.inline-title,
+.inline-year {
+  position: relative
+}
 
-  .inline-date {
-    display: inline-block;
-    min-width: 85px;
-    padding: 7px 22px 7px 8px;
-    border: 1px solid #dce5e3;
-    border-radius: 5px;
-    cursor: pointer
-  }
+.inline-date {
+  display: inline-block;
+  min-width: 85px;
+  padding: 7px 22px 7px 8px;
+  border: 1px solid #dce5e3;
+  border-radius: 5px;
+  cursor: pointer
+}
 
-  .inline-date::after {
-    content: "\270e";
-    position: absolute;
-    right: 7px;
-    color: #76908b;
-    pointer-events: none
-  }
+.inline-date::after {
+  content: "\270e";
+  position: absolute;
+  right: 7px;
+  color: #76908b;
+  pointer-events: none
+}
 
-  .inline-date-selectors {
-    display: flex;
-    position: absolute;
-    inset: 0
-  }
+.inline-date-selectors {
+  display: flex;
+  position: absolute;
+  inset: 0
+}
 
-  .inline-date-selectors select {
-    width: 50%;
-    height: 100%;
-    padding: 0;
-    opacity: 0;
-    cursor: pointer
-  }
+.inline-date-selectors select {
+  width: 50%;
+  height: 100%;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer
+}
 
-  .inline-date-selectors select:focus {
-    opacity: 1
-  }
+.inline-date-selectors select:focus {
+  opacity: 1
+}
 
-  .inline-year {
-    display: inline-block;
-    min-width: 48px;
-    padding: 7px 5px;
-    border: 1px solid #dce5e3;
-    border-radius: 5px;
-    text-align: center;
-    letter-spacing: normal
-  }
+.inline-year {
+  display: inline-block;
+  min-width: 48px;
+  padding: 7px 5px;
+  border: 1px solid #dce5e3;
+  border-radius: 5px;
+  text-align: center;
+  letter-spacing: normal
+}
 
-  .year-placeholder {
-    display: inline
-  }
+.year-placeholder {
+  display: inline
+}
 
-  .inline-title {
-    display: block;
-    flex: 1 1 180px;
-    min-width: 100px;
-    text-align: center;
-    color: #607b7a;
-    font-size: 12px;
-    letter-spacing: normal
-  }
+.inline-title {
+  display: block;
+  flex: 1 1 180px;
+  min-width: 100px;
+  text-align: center;
+  color: #607b7a;
+  font-size: 12px;
+  letter-spacing: normal
+}
 
-  .title-placeholder {
-    display: inline;
-    color: #91a1a1
-  }
+.title-placeholder {
+  display: inline;
+  color: #91a1a1
+}
 
-  .inline-title::after {
-    content: " \270e";
-    color: #91a1a1
-  }
+.inline-title::after {
+  content: " \270e";
+  color: #91a1a1
+}
 
-  #inline-title,
-  #inline-year {
-    display: block;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer
-  }
+#inline-title,
+#inline-year {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer
+}
 
-  #inline-title:focus,
-  #inline-year:focus {
-    opacity: 1;
-    cursor: text
-  }
+#inline-title:focus,
+#inline-year:focus {
+  opacity: 1;
+  cursor: text
+}
 
+@media(min-width:651px) {
   .mobile-dock {
     display: block;
     position: fixed;
@@ -996,8 +985,7 @@ input[type=text] {
   }
 
   .workspace {
-    display: flex;
-    flex-direction: column-reverse
+    display: block
   }
 
   .canvas-area {
@@ -1027,12 +1015,22 @@ input[type=text] {
   }
 
   .sidebar {
-    border-right: 0;
-    border-top: 1px solid #dfe7e7
+    display: none
   }
 
-  .tool-grid {
-    grid-template-columns: 1fr 1fr
+  .inline-date,
+  .inline-year {
+    padding-top: 17px;
+    padding-bottom: 17px
+  }
+
+  .inline-date {
+    min-width: 90px
+  }
+
+  .inline-title {
+    min-height: 44px;
+    padding: 14px 0
   }
 
   .bottom-notes {
@@ -1074,8 +1072,12 @@ input[type=text] {
 
   .mobile-actions {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 4px
+  }
+
+  #desktop-options-button {
+    display: block
   }
 
   .mobile-dock button {
@@ -1100,14 +1102,16 @@ input[type=text] {
     border-color: #6e9e9a
   }
 
-  .mobile-tools {
+  .mobile-tools,
+  .desktop-options {
     padding: 0 0 10px;
     max-height: 55vh;
     overflow-y: auto;
     overscroll-behavior: contain
   }
 
-  .mobile-tools p {
+  .mobile-tools p,
+  .desktop-options p:not(.helper) {
     margin: 8px 0;
     color: #52686a;
     font-size: 11px;
@@ -1136,6 +1140,29 @@ input[type=text] {
   .mobile-tool-grid button.low {
     background: #f8ece5;
     color: #ce805c
+  }
+
+  .desktop-options .switch-row:first-child {
+    margin-top: 0
+  }
+
+  #desktop-copy {
+    width: 100%;
+    margin-top: 16px
+  }
+}
+
+@media(max-width:347px) {
+  .mobile-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+  }
+
+  .site-footer {
+    padding-bottom: 145px
+  }
+
+  .map-wrap svg {
+    scroll-margin-bottom: 145px
   }
 }
 

@@ -42,13 +42,68 @@ document.getElementById("app").addEventListener("load", async () => {
       }
     }
 
-    check(app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none" &&
+    check(app.getComputedStyle(doc.querySelector(".sidebar")).display === "none" &&
+      app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none" &&
       app.getComputedStyle(map).touchAction === "pan-y", "En móvil debe poder desplazarse la página desde el mapa.");
-    check([...doc.querySelectorAll(".mobile-actions button")].filter(button => app.getComputedStyle(button).display !==
-      "none").every(button => button.getBoundingClientRect().width >= 44 &&
-      button.getBoundingClientRect().height >= 44), "Los botones móviles deben tener un tamaño táctil de 44 píxeles.");
-    doc.querySelector("#air-toggle").click();
+    for (const width of [320, 347, 348, 390]) {
+      frame.style.width = `${width}px`;
+      await nextFrame();
+      check([...doc.querySelectorAll(".mobile-actions button")].every(button => {
+        const bounds = button.getBoundingClientRect();
+        return app.getComputedStyle(button).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
+      }) && doc.documentElement.scrollWidth <= width,
+      "Todos los botones móviles deben estar visibles y medir al menos 44 píxeles sin desbordar.");
+    }
+
+    const title = doc.querySelector("#inline-title");
+    const day = doc.querySelector("#inline-day");
+    const month = doc.querySelector("#inline-month");
+    const year = doc.querySelector("#inline-year");
+    check([title, day, month, year].every(input => {
+      const bounds = input.getBoundingClientRect();
+      return app.getComputedStyle(input).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
+    }), "El título y la fecha deben poder editarse desde el mapa en móvil.");
+    title.value = "Mapa móvil";
+    title.dispatchEvent(new app.Event("input", { bubbles: true }));
+    month.value = "02";
+    month.dispatchEvent(new app.Event("change", { bubbles: true }));
+    day.value = "29";
+    day.dispatchEvent(new app.Event("change", { bubbles: true }));
+    year.value = "1900";
+    year.dispatchEvent(new app.Event("input", { bubbles: true }));
+    const saved = structuredClone(app.mapDocument());
+    check(saved.title === "Mapa móvil" && saved.date === "02-29" && saved.year === "1900",
+      "El título y la fecha editados en móvil deben guardarse en el JSON.");
+    const drawn = [];
+    const fillText = app.CanvasRenderingContext2D.prototype.fillText;
+    app.CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
+      drawn.push(text);
+      return fillText.call(this, text, ...args);
+    };
+    try {
+      await app.renderMapPng();
+    } finally {
+      app.CanvasRenderingContext2D.prototype.fillText = fillText;
+    }
+    check(drawn.join("").includes("Mapa móvil") && drawn.join("").includes("29.02") && drawn.join("").includes("1900"),
+      "El PNG móvil debe incluir el título, la fecha y el año opcional.");
+    title.value = "";
+    title.dispatchEvent(new app.Event("input", { bubbles: true }));
+    app.restoreMap(app.validateMapDocument(saved));
+    check(title.value === saved.title && day.value === "29" && month.value === "02" && year.value === saved.year,
+      "Cargar un mapa debe actualizar los campos visibles en móvil.");
+
+    doc.querySelector("#desktop-options-button").click();
+    check(!doc.querySelector("#desktop-options").hidden &&
+      doc.querySelector("#desktop-options-button").getAttribute("aria-expanded") === "true",
+      "Capas debe abrirse desde la barra móvil.");
+    doc.querySelector("#desktop-air").click();
+    doc.querySelector("#desktop-precipitation").click();
+    check(!doc.querySelector("#air-toggle").checked && !doc.querySelector("#precipitation-toggle").checked &&
+      doc.querySelector("#objects").classList.contains("precipitation-hidden"),
+      "Capas debe controlar las masas de aire y la precipitación en móvil.");
     doc.querySelector("#mobile-add").click();
+    check(doc.querySelector("#desktop-options").hidden, "Añadir debe cerrar el panel de capas.");
     doc.querySelector('#mobile-tools [data-tool="high"][data-strength="strong"]').click();
     check(state.tool === "high" && state.strength === "strong" && doc.querySelector("#mobile-tools").hidden &&
       app.getComputedStyle(map).touchAction === "none", "Añadir debe activar la herramienta elegida y cerrar el panel.");
@@ -124,10 +179,25 @@ document.getElementById("app").addEventListener("load", async () => {
     check(!state.objects.includes(front) && doc.querySelector("#mobile-delete").disabled,
       "Eliminar debe actuar sobre la selección actual.");
     doc.querySelector("#mobile-add").click();
+    doc.querySelector("#desktop-options-button").click();
+    check(doc.querySelector("#mobile-tools").hidden, "Capas debe cerrar el panel Añadir.");
+    doc.querySelector("#desktop-copy").click();
+    check(state.objects.some(object => object.layer === "upper" && object.type === "high"),
+      "Capas debe permitir copiar centros desde móvil.");
+    doc.querySelector("#mobile-add").click();
     doc.querySelector('#mobile-tools [data-layer="upper"]').click();
     check(doc.querySelector("#mobile-fronts").hidden && state.layer === "upper" &&
       doc.querySelector('.segmented [data-layer="upper"]').getAttribute("aria-pressed") === "true",
       "El cambio de plano móvil debe sincronizarse y ocultar los frentes en altura.");
+    doc.querySelector("#desktop-options-button").click();
+    check(!doc.querySelector("#desktop-jet-options").hidden && doc.querySelector("#desktop-surface-options").hidden &&
+      doc.querySelector("#desktop-copy").textContent === "Copiar a superficie",
+      "Capas debe mostrar las opciones de altura y la copia hacia superficie.");
+    doc.querySelector('#desktop-jet-options [data-jet-mode="manual"]').click();
+    check(state.jetMode === "manual" && app.activeHeightJet(), "El modo manual del chorro debe funcionar en móvil.");
+    doc.querySelector('#desktop-jet-options [data-jet-mode="automatic"]').click();
+    check(state.jetMode === "automatic", "El modo automático del chorro debe funcionar en móvil.");
+    doc.querySelector("#mobile-add").click();
     doc.querySelector('#mobile-tools [data-layer="surface"]').click();
     check(!doc.querySelector("#mobile-fronts").hidden, "Los frentes deben volver al plano de superficie.");
 
