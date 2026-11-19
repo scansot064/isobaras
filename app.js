@@ -9,6 +9,13 @@ const inlineTitle = document.getElementById("inline-title");
 const inlineDay = document.getElementById("inline-day");
 const inlineMonth = document.getElementById("inline-month");
 const inlineYear = document.getElementById("inline-year");
+const mobileTitleInput = document.getElementById("mobile-title-input");
+const mobileDay = document.getElementById("mobile-day");
+const mobileMonth = document.getElementById("mobile-month");
+const mobileYear = document.getElementById("mobile-year");
+const dayControls = [dateDay, inlineDay, mobileDay];
+const monthControls = [dateMonth, inlineMonth, mobileMonth];
+const yearControls = [dateYear, inlineYear, mobileYear];
 const airToggle = document.getElementById("air-toggle");
 const precipitationToggle = document.getElementById("precipitation-toggle");
 const desktopAir = document.getElementById("desktop-air");
@@ -44,8 +51,8 @@ let selectedDay = String(today.getDate()).padStart(2, "0");
 let selectedMonth = String(today.getMonth() + 1).padStart(2, "0");
 let selectedYear = "";
 
-for (const select of [dateDay, inlineDay, dateMonth, inlineMonth]) {
-  const isDay = select === dateDay || select === inlineDay;
+for (const select of [...dayControls, ...monthControls]) {
+  const isDay = dayControls.includes(select);
   select.add(new Option(isDay ? "Día" : "Mes", ""));
   for (let value = 1; value <= (isDay ? 31 : 12); value++) {
     const text = String(value).padStart(2, "0");
@@ -60,14 +67,16 @@ function mapDate() {
 function syncDateControls() {
   const days = selectedMonth ? new Date(2000, Number(selectedMonth), 0).getDate() : 31;
   if (Number(selectedDay) > days) selectedDay = String(days).padStart(2, "0");
-  for (const select of [dateDay, inlineDay]) {
+  for (const select of dayControls) {
     for (const option of select.options) option.disabled = Number(option.value) > days;
     select.value = selectedDay;
   }
-  dateMonth.value = inlineMonth.value = selectedMonth;
-  dateYear.value = inlineYear.value = selectedYear;
+  for (const select of monthControls) select.value = selectedMonth;
+  for (const input of yearControls) input.value = selectedYear;
   document.getElementById("map-date").textContent = mapDate() ? `${selectedDay}.${selectedMonth}` : "SIN FECHA";
   document.getElementById("map-year").textContent = selectedYear;
+  document.getElementById("mobile-map-date").textContent =
+    document.getElementById("map-date").textContent + (selectedYear ? ` ${selectedYear}` : "");
   document.querySelector(".year-placeholder").hidden = Boolean(selectedYear);
 }
 
@@ -434,14 +443,14 @@ document.querySelectorAll("[data-tool]").forEach(button => button.addEventListen
   const active = state.tool === button.dataset.tool && state.strength === strength;
   setTool(active ? null : button.dataset.tool, active ? null : strength);
 }));
-for (const select of [dateDay, inlineDay, dateMonth, inlineMonth]) {
+for (const select of [...dayControls, ...monthControls]) {
   select.addEventListener("change", () => {
-    if (select === dateDay || select === inlineDay) selectedDay = select.value;
+    if (dayControls.includes(select)) selectedDay = select.value;
     else selectedMonth = select.value;
     updateDate();
   });
 }
-for (const input of [dateYear, inlineYear]) {
+for (const input of yearControls) {
   input.addEventListener("input", () => {
     selectedYear = input.value.replace(/\D/g, "").slice(0, 6);
     syncDateControls();
@@ -451,12 +460,16 @@ titleInput.addEventListener("input", () => {
   mapTitle.textContent = titleInput.value;
   mapTitle.hidden = !titleInput.value.trim();
   inlineTitle.value = titleInput.value;
+  mobileTitleInput.value = titleInput.value;
+  document.getElementById("mobile-map-title").textContent = mapTitle.hidden ? "Añadir título" : titleInput.value;
   document.querySelector(".title-placeholder").hidden = !mapTitle.hidden;
 });
-inlineTitle.addEventListener("input", () => {
-  titleInput.value = inlineTitle.value;
-  titleInput.dispatchEvent(new Event("input"));
-});
+for (const input of [inlineTitle, mobileTitleInput]) {
+  input.addEventListener("input", () => {
+    titleInput.value = input.value;
+    titleInput.dispatchEvent(new Event("input"));
+  });
+}
 airToggle.addEventListener("change", updateDate);
 precipitationToggle.addEventListener("change", () => {
   desktopPrecipitation.checked = precipitationToggle.checked;

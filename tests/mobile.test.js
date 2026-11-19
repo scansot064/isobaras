@@ -45,6 +45,9 @@ document.getElementById("app").addEventListener("load", async () => {
     check(app.getComputedStyle(doc.querySelector(".sidebar")).display === "none" &&
       app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none" &&
       app.getComputedStyle(map).touchAction === "pan-y", "En móvil debe poder desplazarse la página desde el mapa.");
+    check(doc.title === "Generador interactivo de mapas de isobaras" &&
+      doc.querySelector(".brand h1").textContent === doc.title && !doc.querySelector(".header-note"),
+      "La cabecera y la pestaña deben mostrar el nombre del generador.");
     const drawerButton = doc.querySelector("#file-drawer-button");
     const drawer = doc.querySelector("#file-drawer-panel");
     drawerButton.click();
@@ -95,14 +98,69 @@ document.getElementById("app").addEventListener("load", async () => {
     while (doc.querySelector("#export-png").disabled && Date.now() < deadline) await nextFrame();
     app.HTMLAnchorElement.prototype.click = clickAnchor;
     check(download === "isobaras.png", "La descarga del PNG debe continuar después de cerrar el panel.");
+    const infoButton = doc.querySelector("#info-drawer-button");
+    const info = doc.querySelector("#info-drawer-panel");
+    infoButton.click();
+    check(!info.hidden && infoButton.getAttribute("aria-expanded") === "true" &&
+      doc.activeElement === doc.querySelector("#info-drawer-close") &&
+      Math.abs(info.getBoundingClientRect().right - app.innerWidth) < 1 &&
+      info.scrollHeight > info.clientHeight &&
+      info.querySelectorAll("h3").length === 5 &&
+      [...info.querySelectorAll("a")].length === 5 &&
+      [...info.querySelectorAll("a")].every(link => link.hostname === "es.wikipedia.org" &&
+        link.target === "_blank" && link.rel.includes("noopener")),
+      "La guía debe abrirse en el lateral, poder desplazarse y ofrecer enlaces a Wikipedia.");
+    doc.dispatchEvent(new app.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    check(info.hidden && doc.activeElement === infoButton && infoButton.getAttribute("aria-expanded") === "false",
+      "Escape debe cerrar la guía y devolver el foco a su icono.");
+    infoButton.click();
+    doc.querySelector("#info-drawer-close").click();
+    check(info.hidden && doc.activeElement === infoButton, "El cierre de la guía debe devolver el foco a su icono.");
+    infoButton.click();
+    drawerButton.click();
+    check(info.hidden && infoButton.getAttribute("aria-expanded") === "false" && !drawer.hidden,
+      "Abrir archivo debe cerrar la guía.");
+    infoButton.click();
+    check(drawer.hidden && drawerButton.getAttribute("aria-expanded") === "false" && !info.hidden,
+      "Abrir la guía debe cerrar archivo.");
+    app.setTool("high", "weak");
+    pointer(map, "pointerdown", mapCenter.x, mapCenter.y);
+    check(info.hidden && infoButton.getAttribute("aria-expanded") === "false" && state.objects.length === 0,
+      "Tocar el mapa debe cerrar la guía sin añadir accidentalmente un elemento.");
+    app.setTool(null);
+    infoButton.click();
+    doc.querySelector("#mobile-add").click();
+    check(info.hidden && !doc.querySelector("#mobile-tools").hidden,
+      "Abrir Añadir debe cerrar la guía.");
+    infoButton.click();
+    check(doc.querySelector("#mobile-tools").hidden && !info.hidden,
+      "Abrir la guía debe cerrar Añadir.");
+    doc.querySelector("#desktop-options-button").click();
+    check(info.hidden && !doc.querySelector("#desktop-options").hidden,
+      "Abrir Capas debe cerrar la guía.");
+    infoButton.click();
+    check(doc.querySelector("#desktop-options").hidden && !info.hidden,
+      "Abrir la guía debe cerrar Capas.");
+    doc.querySelector("#info-drawer-close").click();
     for (const width of [320, 347, 348, 390]) {
       frame.style.width = `${width}px`;
       await nextFrame();
       const fileBounds = drawerButton.getBoundingClientRect();
+      const infoBounds = infoButton.getBoundingClientRect();
+      const canvasTitle = doc.querySelector(".canvas-heading h2").getBoundingClientRect();
+      const heading = doc.querySelector(".brand h1").getBoundingClientRect();
+      const topbar = doc.querySelector(".topbar").getBoundingClientRect();
+      const metaButton = doc.querySelector("#mobile-meta-button").getBoundingClientRect();
+      const toolbar = doc.querySelector(".map-toolbar").getBoundingClientRect();
       check([...doc.querySelectorAll(".mobile-actions button")].every(button => {
         const bounds = button.getBoundingClientRect();
         return app.getComputedStyle(button).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
-      }) && fileBounds.width >= 44 && fileBounds.height >= 44 && fileBounds.bottom <= map.getBoundingClientRect().top &&
+      }) && heading.top >= topbar.top && heading.bottom <= topbar.bottom && heading.right <= topbar.right &&
+        fileBounds.width >= 44 && fileBounds.height >= 44 && fileBounds.bottom <= map.getBoundingClientRect().top &&
+        infoBounds.width >= 44 && infoBounds.height >= 44 && infoBounds.right <= fileBounds.left &&
+        infoBounds.bottom <= map.getBoundingClientRect().top &&
+        (canvasTitle.right <= infoBounds.left || canvasTitle.top >= infoBounds.bottom) &&
+        metaButton.height >= 44 && toolbar.height <= 60 &&
         doc.documentElement.scrollWidth <= width,
       "Todos los botones móviles deben estar visibles y medir al menos 44 píxeles sin desbordar.");
     }
@@ -112,14 +170,20 @@ document.getElementById("app").addEventListener("load", async () => {
       "El icono de archivo no debe tapar el mapa al desplazarse por la página.");
     app.scrollTo(0, 0);
 
-    const title = doc.querySelector("#inline-title");
-    const day = doc.querySelector("#inline-day");
-    const month = doc.querySelector("#inline-month");
-    const year = doc.querySelector("#inline-year");
+    const metaButton = doc.querySelector("#mobile-meta-button");
+    const metaPanel = doc.querySelector("#mobile-meta-panel");
+    const title = doc.querySelector("#mobile-title-input");
+    const day = doc.querySelector("#mobile-day");
+    const month = doc.querySelector("#mobile-month");
+    const year = doc.querySelector("#mobile-year");
+    metaButton.click();
+    check(!metaPanel.hidden && metaButton.getAttribute("aria-expanded") === "true" &&
+      doc.activeElement === doc.querySelector("#mobile-meta-close"),
+      "El resumen debe abrir el panel de fecha y título.");
     check([title, day, month, year].every(input => {
       const bounds = input.getBoundingClientRect();
       return app.getComputedStyle(input).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
-    }), "El título y la fecha deben poder editarse desde el mapa en móvil.");
+    }), "Los campos del panel deben ser cómodos para editar en móvil.");
     title.value = "Mapa móvil";
     title.dispatchEvent(new app.Event("input", { bubbles: true }));
     month.value = "02";
@@ -131,6 +195,13 @@ document.getElementById("app").addEventListener("load", async () => {
     const saved = structuredClone(app.mapDocument());
     check(saved.title === "Mapa móvil" && saved.date === "02-29" && saved.year === "1900",
       "El título y la fecha editados en móvil deben guardarse en el JSON.");
+    check(doc.querySelector("#mobile-map-title").textContent === saved.title &&
+      doc.querySelector("#mobile-map-date").textContent === "29.02 1900" &&
+      doc.querySelector("#inline-title").value === saved.title && doc.querySelector("#inline-day").value === "29",
+      "El resumen y los controles de escritorio deben reflejar la edición móvil.");
+    doc.dispatchEvent(new app.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    check(metaPanel.hidden && doc.activeElement === metaButton && metaButton.getAttribute("aria-expanded") === "false",
+      "Escape debe cerrar el panel de fecha y título y devolver el foco.");
     const drawn = [];
     const fillText = app.CanvasRenderingContext2D.prototype.fillText;
     app.CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
@@ -144,11 +215,51 @@ document.getElementById("app").addEventListener("load", async () => {
     }
     check(drawn.join("").includes("Mapa móvil") && drawn.join("").includes("29.02") && drawn.join("").includes("1900"),
       "El PNG móvil debe incluir el título, la fecha y el año opcional.");
+    metaButton.click();
+    title.value = "Títulolargo".repeat(20);
+    title.dispatchEvent(new app.Event("input", { bubbles: true }));
+    doc.querySelector("#mobile-meta-close").click();
+    const titleBounds = doc.querySelector("#mobile-map-title");
+    check(titleBounds.scrollWidth > titleBounds.clientWidth,
+      "El resumen debe abreviar un título largo sin aumentar su altura.");
+    const longTitleLines = [];
+    app.CanvasRenderingContext2D.prototype.fillText = function (text, x, y, ...args) {
+      if (x === 19 && y >= 41) longTitleLines.push({ text, x, y, width: this.measureText(text).width });
+      return fillText.call(this, text, x, y, ...args);
+    };
+    try {
+      await app.renderMapPng();
+    } finally {
+      app.CanvasRenderingContext2D.prototype.fillText = fillText;
+    }
+    const cardWidth = doc.querySelector(".map-card").getBoundingClientRect().width;
+    check(longTitleLines.length > 1 && longTitleLines.map(line => line.text).join("") === title.value &&
+      longTitleLines.every(line => line.x >= 0 && line.x + line.width <= cardWidth - 19),
+      "El PNG debe incluir el título largo completo y ajustado dentro de la banda.");
     title.value = "";
     title.dispatchEvent(new app.Event("input", { bubbles: true }));
     app.restoreMap(app.validateMapDocument(saved));
     check(title.value === saved.title && day.value === "29" && month.value === "02" && year.value === saved.year,
       "Cargar un mapa debe actualizar los campos visibles en móvil.");
+    metaButton.click();
+    app.setTool("high", "weak");
+    const outsideMap = screenPoint(600, 350);
+    pointer(map, "pointerdown", outsideMap.x, outsideMap.y);
+    check(metaPanel.hidden && state.objects.length === 0,
+      "Tocar el mapa debe cerrar el panel sin añadir accidentalmente un elemento.");
+    app.setTool(null);
+    metaButton.click();
+    drawerButton.click();
+    check(metaPanel.hidden && !drawer.hidden, "Abrir archivo debe cerrar el panel de edición.");
+    metaButton.click();
+    check(drawer.hidden && !metaPanel.hidden, "Abrir el panel de edición debe cerrar archivo.");
+    frame.style.width = "800px";
+    await nextFrame();
+    check(metaPanel.hidden && app.getComputedStyle(metaButton).display === "none" &&
+      doc.querySelector("#inline-title").value === saved.title,
+      "Al pasar a escritorio debe cerrarse el panel móvil sin perder los cambios.");
+    frame.style.width = "390px";
+    await nextFrame();
 
     doc.querySelector("#desktop-options-button").click();
     check(!doc.querySelector("#desktop-options").hidden &&

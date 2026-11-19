@@ -6,6 +6,17 @@ const desktopOptionsButton = document.getElementById("desktop-options-button");
 const fileDrawerButton = document.getElementById("file-drawer-button");
 const fileDrawerPanel = document.getElementById("file-drawer-panel");
 const fileDrawerClose = document.getElementById("file-drawer-close");
+const infoDrawerButton = document.getElementById("info-drawer-button");
+const infoDrawerPanel = document.getElementById("info-drawer-panel");
+const infoDrawerClose = document.getElementById("info-drawer-close");
+const mobileMetaButton = document.getElementById("mobile-meta-button");
+const mobileMetaPanel = document.getElementById("mobile-meta-panel");
+const mobileMetaClose = document.getElementById("mobile-meta-close");
+const drawers = [
+  { button: fileDrawerButton, panel: fileDrawerPanel, close: fileDrawerClose },
+  { button: infoDrawerButton, panel: infoDrawerPanel, close: infoDrawerClose },
+  { button: mobileMetaButton, panel: mobileMetaPanel, close: mobileMetaClose }
+];
 const mobilePan = document.getElementById("mobile-pan");
 const zoomIn = document.getElementById("zoom-in");
 const zoomOut = document.getElementById("zoom-out");
@@ -63,50 +74,62 @@ function setPan(active) {
   mobilePan.setAttribute("aria-pressed", String(active));
 }
 
-function closeFileDrawer(restoreFocus = false) {
-  fileDrawerPanel.hidden = true;
-  fileDrawerButton.setAttribute("aria-expanded", "false");
-  if (restoreFocus) fileDrawerButton.focus();
+function closeDrawer(drawer, restoreFocus = false) {
+  drawer.panel.hidden = true;
+  drawer.button.setAttribute("aria-expanded", "false");
+  if (restoreFocus) drawer.button.focus();
+}
+
+function closeDrawers() {
+  drawers.forEach(drawer => closeDrawer(drawer));
 }
 
 mobileAdd.addEventListener("click", () => {
-  closeFileDrawer();
+  closeDrawers();
   desktopOptions.hidden = true;
   desktopOptionsButton.setAttribute("aria-expanded", "false");
   mobileTools.hidden = !mobileTools.hidden;
   mobileAdd.setAttribute("aria-expanded", String(!mobileTools.hidden));
 });
 desktopOptionsButton.addEventListener("click", () => {
-  closeFileDrawer();
+  closeDrawers();
   mobileTools.hidden = true;
   mobileAdd.setAttribute("aria-expanded", "false");
   desktopOptions.hidden = !desktopOptions.hidden;
   desktopOptionsButton.setAttribute("aria-expanded", String(!desktopOptions.hidden));
 });
-fileDrawerButton.addEventListener("click", () => {
-  mobileTools.hidden = true;
-  mobileAdd.setAttribute("aria-expanded", "false");
-  desktopOptions.hidden = true;
-  desktopOptionsButton.setAttribute("aria-expanded", "false");
-  fileDrawerPanel.hidden = !fileDrawerPanel.hidden;
-  fileDrawerButton.setAttribute("aria-expanded", String(!fileDrawerPanel.hidden));
-  if (!fileDrawerPanel.hidden) fileDrawerClose.focus();
+drawers.forEach(drawer => {
+  drawer.button.addEventListener("click", () => {
+    const opening = drawer.panel.hidden;
+    closeDrawers();
+    mobileTools.hidden = true;
+    mobileAdd.setAttribute("aria-expanded", "false");
+    desktopOptions.hidden = true;
+    desktopOptionsButton.setAttribute("aria-expanded", "false");
+    if (opening) {
+      drawer.panel.hidden = false;
+      drawer.button.setAttribute("aria-expanded", "true");
+      drawer.close.focus();
+    }
+  });
+  drawer.close.addEventListener("click", () => closeDrawer(drawer, true));
 });
-fileDrawerClose.addEventListener("click", () => closeFileDrawer(true));
 fileDrawerPanel.addEventListener("click", event => {
-  if (event.target.closest("#save-map, #load-map, #export-png")) closeFileDrawer();
+  if (event.target.closest("#save-map, #load-map, #export-png")) closeDrawer(drawers[0]);
 });
 document.addEventListener("pointerdown", event => {
-  if (fileDrawerPanel.hidden || fileDrawerPanel.contains(event.target) || fileDrawerButton.contains(event.target)) return;
-  closeFileDrawer();
+  if (drawers.every(drawer => drawer.panel.hidden) ||
+      drawers.some(drawer => drawer.panel.contains(event.target) || drawer.button.contains(event.target))) return;
+  closeDrawers();
   if (map.contains(event.target)) {
     event.preventDefault();
     event.stopPropagation();
   }
 }, true);
 document.addEventListener("keydown", event => {
-  if (event.key !== "Escape" || fileDrawerPanel.hidden) return;
-  closeFileDrawer(true);
+  if (event.key !== "Escape") return;
+  const openDrawer = drawers.find(drawer => !drawer.panel.hidden);
+  if (openDrawer) closeDrawer(openDrawer, true);
 });
 mobileTools.querySelectorAll("[data-tool]").forEach(button => button.addEventListener("click", () => {
   setPan(false);
@@ -148,6 +171,7 @@ for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
   }, true);
 }
 mobileScreen.addEventListener("change", () => {
+  if (!mobileScreen.matches) closeDrawer(drawers[2]);
   desktopOptions.hidden = true;
   desktopOptionsButton.setAttribute("aria-expanded", "false");
   if (!mobileScreen.matches) {

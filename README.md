@@ -1,10 +1,10 @@
-# Isobaras · Laboratorio del tiempo
+# Generador interactivo de mapas de isobaras
 
 Editor didáctico de mapas meteorológicos para el Atlántico norte y Europa occidental. Abre `index.html` en un navegador moderno; funciona sin conexión y no necesita instalar dependencias.
 
 ## Uso
 
-- Edita el **título**, el **día y mes** y, si lo deseas, el **año** directamente en la banda superior del mapa. El año es opcional y no modifica la fecha seleccionada ni la simulación. El título se comparte entre ambos planos.
+- Edita el **título**, el **día y mes** y, si lo deseas, el **año** en la banda superior del mapa. En móvil, pulsa el resumen de fecha y título para abrir el panel de edición; se cierra con su botón, Escape o pulsando fuera. El año es opcional y no modifica la fecha seleccionada ni la simulación. El título se comparte entre ambos planos.
 - Elige **Superficie** o **Altura · 500 hPa**. Cada plano mantiene sus propios elementos mientras la página esté abierta.
 - Elige **Anticiclón** o **Borrasca** con la intensidad deseada y después haz clic en el mapa. En superficie, todos los centros contribuyen a un mismo campo de presión y sus isobaras en hPa se recalculan conjuntamente desde el primer centro. En altura, los centros modifican conjuntamente un campo de geopotencial, con curvas discontinuas en metros y flechas de viento.
 - Usa **Copiar a altura** o **Copiar a superficie** para copiar los centros del plano activo al otro, conservando su posición, intensidad y deformación. Los centros existentes en el destino se sustituyen tras una confirmación; los frentes y el chorro se conservan. Las copias se pueden editar independientemente.
@@ -14,7 +14,8 @@ Editor didáctico de mapas meteorológicos para el Atlántico norte y Europa occ
 - En altura, el chorro **Automático** se recalcula al mover, añadir, eliminar o deformar centros de altura. Al elegir **Manual**, el chorro existente se mantiene y aparecen tiradores para deformarlo verticalmente; también puedes arrastrar el trazado completo. Las curvas y las flechas de altura se adaptan. Al modificar centros se conserva el trazado manual; al alternar modos se oculta o recupera sin perderse. Si no se encuentra un trazado automático para empezar a editar, ajusta los centros de altura.
 - En superficie, la fecha establece la distribución inicial de aire frío y cálido; los centros desplazan los colores siguiendo el viento. Cambiar de fecha reinicia esa distribución y eliminar el último centro la restablece. El interruptor y la capa de altura ocultan y pausan la simulación. **Limpiar capa**, en **Capas**, elimina únicamente los elementos del plano activo.
 - Con el icono de disquete de la cabecera abre **Archivo**. Usa **Guardar mapa** para descargar un JSON editable que conserva el título, el día, el mes y el año opcional, ambos planos, los centros y frentes con sus deformaciones, el chorro manual, las opciones visibles y la distribución actual del aire. **Cargar mapa** recupera ese archivo y, tras confirmarlo, sustituye ambos planos del mapa abierto. También admite los mapas guardados con el formato anterior. La simulación de aire continuará desde la distribución guardada. El panel se cierra al elegir una acción, pulsar fuera o usar su botón de cierre.
-- Usa **Descargar PNG** para guardar el mapa del plano visible, con su fecha, título, capas mostradas y pie de atribución, sin las indicaciones ni la barra inferior de información interactiva.
+- El icono de información, junto al disquete, abre una guía sobre isobaras, centros de acción, frentes, mapas de superficie y altura y corriente en chorro. Sus enlaces a Wikipedia se abren en otra pestaña y requieren conexión. La guía se cierra con su botón, Escape o pulsando fuera.
+- Usa **Descargar PNG** para guardar el mapa del plano visible, con su fecha, título completo, capas mostradas y pie de atribución, sin las indicaciones ni la barra inferior de información interactiva. En móvil, el título largo se ajusta en varias líneas en la imagen aunque el resumen se muestre abreviado.
 - La barra flotante **Añadir** reúne los planos, centros y frentes, y **Capas** permite controlar las masas de aire, la precipitación o el chorro y copiar centros entre planos.
 - Usa **+** y **−** para ampliar o alejar el mapa; si hay un elemento seleccionado, el zoom se centra en él. Con **Mover mapa** activado, arrastra para recorrer la zona ampliada y vuelve a pulsarlo para editar. En teléfonos, fuera de ese modo, arrastrar una zona libre permite desplazar la página; los elementos y tiradores se arrastran directamente. **100%** vuelve a mostrar todo el mapa. El zoom no modifica el mapa guardado ni el PNG.
 
@@ -50,4 +51,4 @@ Abre `tests/transform.html`, `tests/pressure.html`, `tests/controls.html`, `test
 
 ## Licencia
 
-El proyecto se distribuye bajo [Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/deed.es). Para la atribución, indica «Isobaras · Laboratorio del tiempo, scansot064 y colaboradores», enlaza al repositorio y a la licencia e indica los cambios realizados. Los datos de Natural Earth mencionados arriba son de dominio público y no quedan sujetos a esta licencia.
+El proyecto se distribuye bajo [Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/deed.es). Para la atribución, indica «Generador interactivo de mapas de isobaras, scansot064 y colaboradores», enlaza al repositorio y a la licencia e indica los cambios realizados. Los datos de Natural Earth mencionados arriba son de dominio público y no quedan sujetos a esta licencia.

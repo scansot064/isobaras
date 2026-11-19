@@ -1,8 +1,9 @@
-function cardText(card, bounds) {
+function cardText(card, bounds, excludeToolbar = false) {
   const lines = [];
   const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      return node.parentElement.closest("svg, .map-footer, #instruction, .title-placeholder, .year-placeholder, select") ?
+      return node.parentElement.closest("svg, .map-footer, #instruction, .title-placeholder, .year-placeholder, select") ||
+        (excludeToolbar && node.parentElement.closest(".map-toolbar")) ?
         NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
     }
   });
@@ -69,12 +70,22 @@ async function renderMapPng() {
   if (!bounds.width || !bounds.height || !mapBounds.width) throw new Error("El mapa no está visible.");
   const borderWidth = parseFloat(getComputedStyle(card).borderTopWidth);
   const instructionBounds = document.getElementById("instruction").getBoundingClientRect();
-  const mapHeight = card.querySelector(".map-footer").getBoundingClientRect().top - bounds.top + borderWidth -
-    instructionBounds.height;
   const scale = Math.max(1, 1200 / mapBounds.width);
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
   if (!context) throw new Error("No se puede crear la imagen del mapa.");
+  const mobile = mobileScreen.matches;
+  const toolbar = card.querySelector(".map-toolbar");
+  const titleFont = `700 12px ${getComputedStyle(card).fontFamily}`;
+  context.font = titleFont;
+  const title = titleInput.value.trim().replace(/\s+/g, " ");
+  const layerText = document.getElementById("map-layer").textContent;
+  const dateText = document.getElementById("mobile-map-date").textContent;
+  const titleLines = mobile && title ? wrapAttribution(context, title, Math.max(1, bounds.width - 38)) : [];
+  const headerHeight = 39 + (titleLines.length ? 7 + titleLines.length * 17 : 0);
+  const headerDelta = mobile ? headerHeight - toolbar.getBoundingClientRect().height : 0;
+  const mapHeight = card.querySelector(".map-footer").getBoundingClientRect().top - bounds.top + borderWidth -
+    instructionBounds.height + headerDelta;
   const attribution = document.getElementById("attribution");
   const attributionStyle = getComputedStyle(attribution);
   const attributionFont = `${attributionStyle.fontStyle} ${attributionStyle.fontWeight} ${attributionStyle.fontSize} ${attributionStyle.fontFamily}`;
@@ -87,11 +98,12 @@ async function renderMapPng() {
   canvas.height = Math.ceil(height * scale);
   context.scale(scale, scale);
 
-  const text = cardText(card, bounds).map(line => ({
+  const text = cardText(card, bounds, mobile).map(line => ({
     ...line,
-    y: line.y >= instructionBounds.bottom - bounds.top ? line.y - instructionBounds.height : line.y
+    y: line.y >= instructionBounds.bottom - bounds.top ?
+      line.y - instructionBounds.height + headerDelta : line.y
   }));
-  const dots = [...card.querySelectorAll(".live-dot")].map(dot => {
+  const dots = mobile ? [] : [...card.querySelectorAll(".live-dot")].map(dot => {
     const rect = dot.getBoundingClientRect();
     return {
       x: rect.left - bounds.left,
@@ -121,8 +133,21 @@ async function renderMapPng() {
     await image.decode();
     context.fillStyle = getComputedStyle(card).backgroundColor;
     context.fillRect(0, 0, bounds.width, height);
-    context.drawImage(image, mapBounds.left - bounds.left, mapBounds.top - bounds.top - instructionBounds.height,
+    context.drawImage(image, mapBounds.left - bounds.left,
+      mapBounds.top - bounds.top - instructionBounds.height + headerDelta,
       mapBounds.width, mapBounds.height);
+    if (mobile) {
+      context.fillStyle = "#607b7a";
+      context.font = `700 10px ${getComputedStyle(card).fontFamily}`;
+      context.textBaseline = "middle";
+      context.textAlign = "left";
+      context.fillText(layerText, 19, 19.5);
+      context.textAlign = "right";
+      context.fillText(dateText, bounds.width - 19, 19.5);
+      context.font = titleFont;
+      context.textAlign = "left";
+      titleLines.forEach((line, index) => context.fillText(line, 19, 41.5 + index * 17));
+    }
     for (const dot of dots) {
       context.fillStyle = dot.color;
       context.beginPath();

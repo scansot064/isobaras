@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#122638">
-  <title>Isobaras · Laboratorio del tiempo</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <title>Generador interactivo de mapas de isobaras</title>
+  <link rel="stylesheet" href="style.css?v=6">
   <script defer src="assets/land.js"></script>
   <script defer src="map.js"></script>
   <script defer src="symbols.js"></script>
@@ -13,21 +13,17 @@
   <script defer src="jet.js"></script>
   <script defer src="wind.js"></script>
   <script defer src="air.js"></script>
-  <script defer src="app.js"></script>
-  <script defer src="mobile.js?v=3"></script>
-  <script defer src="export.js"></script>
+  <script defer src="app.js?v=2"></script>
+  <script defer src="mobile.js?v=5"></script>
+  <script defer src="export.js?v=2"></script>
   <script defer src="save.js"></script>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <span class="brand-icon" aria-hidden="true">◉</span>
-      <div>
-        <p>LABORATORIO DEL TIEMPO</p>
-        <h1>Isobaras<span>.</span></h1>
-      </div>
+      <h1>Generador interactivo de mapas de isobaras</h1>
     </div>
-    <div class="header-note"><span class="live-dot"></span> Tu espacio de análisis meteorológico</div>
     <div class="header-tag">ATLÁNTICO NORTE <span>/</span> EUROPA</div>
   </header>
 
@@ -126,19 +122,27 @@
           <h2>Tu mapa meteorológico</h2>
           <p id="canvas-description">Isobaras, centros de acción y frentes</p>
         </div>
-        <button type="button" id="file-drawer-button" aria-label="Archivo" title="Archivo" aria-expanded="false" aria-controls="file-drawer-panel">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l3 3v15H4V3h1Zm3 0v6h8V3M7 21v-8h10v8M14 4v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-        </button>
+        <div class="heading-actions">
+          <button type="button" id="info-drawer-button" aria-label="Información meteorológica" title="Información meteorológica" aria-expanded="false" aria-controls="info-drawer-panel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"></circle><path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+          </button>
+          <button type="button" id="file-drawer-button" aria-label="Archivo" title="Archivo" aria-expanded="false" aria-controls="file-drawer-panel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l3 3v15H4V3h1Zm3 0v6h8V3M7 21v-8h10v8M14 4v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+        </div>
       </div>
       <div class="map-card">
         <div class="map-toolbar">
-          <span>
+          <span class="desktop-map-meta">
             <i class="live-dot"></i> <strong id="map-layer">SUPERFICIE</strong>
             <span class="toolbar-separator">/</span><span class="inline-date"><span id="map-date"></span><span class="inline-date-selectors"><select id="inline-day" aria-label="Día del mapa"></select><select id="inline-month" aria-label="Mes del mapa"></select></span></span>
             <label class="inline-year"><span id="map-year"></span><span class="year-placeholder">Año</span><input id="inline-year" type="text" inputmode="numeric" maxlength="6" placeholder="Año" aria-label="Año opcional del mapa"></label>
           </span>
-          <label class="inline-title"><strong id="map-title" hidden></strong><span class="title-placeholder">Añadir título</span><input id="inline-title" type="text" aria-label="Editar título del mapa" placeholder="Añadir título"></label>
-          <span>ATLÁNTICO NORTE & EUROPA</span>
+          <label class="inline-title desktop-map-meta"><strong id="map-title" hidden></strong><span class="title-placeholder">Añadir título</span><input id="inline-title" type="text" aria-label="Editar título del mapa" placeholder="Añadir título"></label>
+          <span class="desktop-map-meta">ATLÁNTICO NORTE & EUROPA</span>
+          <button type="button" id="mobile-meta-button" aria-label="Editar fecha y título" aria-describedby="mobile-map-date mobile-map-title" aria-expanded="false" aria-controls="mobile-meta-panel">
+            <span id="mobile-map-date"></span><span id="mobile-map-title">Añadir título</span><span aria-hidden="true">✎</span>
+          </button>
         </div>
         <div class="map-instruction" id="instruction">Selecciona una herramienta y haz clic en el mapa para añadirla</div>
         <div class="map-wrap" id="map-wrap">
@@ -209,6 +213,43 @@
       <button type="button" id="load-map">Cargar mapa</button>
       <input id="map-file" type="file" accept=".json,application/json" hidden>
       <button type="button" id="export-png">Descargar PNG</button>
+    </section>
+    <section id="info-drawer-panel" class="file-drawer-panel info-drawer-panel" aria-labelledby="info-drawer-title" hidden>
+      <div class="file-drawer-heading">
+        <h2 id="info-drawer-title">Guía meteorológica</h2>
+        <button type="button" id="info-drawer-close" aria-label="Cerrar información">&times;</button>
+      </div>
+      <h3>Isobaras</h3>
+      <p>En un mapa de superficie, las isobaras unen puntos con la misma presión atmosférica. Cuanto más juntas están, mayor suele ser el viento. La presión se expresa en hectopascales (hPa). <a href="https://es.wikipedia.org/wiki/Isobara" target="_blank" rel="noopener noreferrer">Isobaras en Wikipedia</a>.</p>
+      <h3>Anticiclones y borrascas</h3>
+      <p>Un anticiclón (A) es una zona de presión relativamente alta y suele favorecer tiempo estable. Una borrasca (B) es una zona de presión relativamente baja, a menudo asociada con nubes, viento y precipitaciones. En el hemisferio norte, el viento gira aproximadamente en sentido horario alrededor de las altas y antihorario alrededor de las bajas. <a href="https://es.wikipedia.org/wiki/Altas_y_bajas_presiones" target="_blank" rel="noopener noreferrer">Altas y bajas presiones en Wikipedia</a>.</p>
+      <h3>Frentes</h3>
+      <p>Son zonas de encuentro entre masas de aire con distintas características. Los principales tipos son:</p>
+      <ul>
+        <li><strong>Frío:</strong> el aire frío avanza bajo el cálido y lo eleva; puede producir lluvias intensas.</li>
+        <li><strong>Cálido:</strong> el aire cálido avanza sobre el frío; suele asociarse a nubosidad y precipitaciones más extensas.</li>
+        <li><strong>Ocluido:</strong> en el modelo clásico, un frente frío alcanza a uno cálido y el aire cálido se eleva.</li>
+        <li><strong>Estacionario:</strong> la separación entre las masas de aire apenas se desplaza. No se dibuja en este editor.</li>
+      </ul>
+      <p><a href="https://es.wikipedia.org/wiki/Frente_(meteorolog%C3%ADa)" target="_blank" rel="noopener noreferrer">Frentes meteorológicos en Wikipedia</a>.</p>
+      <h3>Superficie y altura</h3>
+      <p>El mapa de superficie muestra la presión reducida al nivel del mar, las isobaras y los frentes. El mapa de 500 hPa muestra la altura geopotencial de esa superficie de presión mediante isohipsas: no representa una altura fija. Sus curvas ayudan a entender la circulación en niveles medios. <a href="https://es.wikipedia.org/wiki/Isohipsa" target="_blank" rel="noopener noreferrer">Isohipsas en Wikipedia</a>.</p>
+      <h3>Corriente en chorro</h3>
+      <p>Es una franja estrecha de vientos intensos en altura que influye en la evolución de los sistemas meteorológicos. Se estudia habitualmente en niveles superiores a 500 hPa; el chorro que dibuja este editor es una representación orientativa. <a href="https://es.wikipedia.org/wiki/Corriente_en_chorro" target="_blank" rel="noopener noreferrer">Corriente en chorro en Wikipedia</a>.</p>
+      <p>Este generador es un esquema didáctico, no un pronóstico. Los enlaces se abren en otra pestaña y necesitan conexión a Internet.</p>
+    </section>
+    <section id="mobile-meta-panel" class="file-drawer-panel mobile-meta-panel" aria-labelledby="mobile-meta-heading" hidden>
+      <div class="file-drawer-heading">
+        <h2 id="mobile-meta-heading">Fecha y título</h2>
+        <button type="button" id="mobile-meta-close" aria-label="Cerrar fecha y título">&times;</button>
+      </div>
+      <label for="mobile-title-input">Título</label>
+      <input id="mobile-title-input" type="text" placeholder="Añadir título">
+      <div class="mobile-meta-fields">
+        <label for="mobile-day">Día<select id="mobile-day"></select></label>
+        <label for="mobile-month">Mes<select id="mobile-month"></select></label>
+        <label for="mobile-year">Año opcional<input id="mobile-year" type="text" inputmode="numeric" maxlength="6" placeholder="Año"></label>
+      </div>
     </section>
   </div>
   <div class="mobile-dock" aria-label="Herramientas del mapa">

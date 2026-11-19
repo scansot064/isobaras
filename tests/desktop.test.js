@@ -14,6 +14,16 @@ document.getElementById("app").addEventListener("load", async () => {
       "En escritorio el mapa debe sustituir al panel lateral y mostrar herramientas flotantes.");
     check(doc.querySelector("#file-drawer-button").getBoundingClientRect().bottom <= map.getBoundingClientRect().top,
       "El icono de archivo debe permanecer fuera del mapa también en escritorio.");
+    const infoButton = doc.querySelector("#info-drawer-button");
+    const info = doc.querySelector("#info-drawer-panel");
+    check(infoButton.getBoundingClientRect().right <= doc.querySelector("#file-drawer-button").getBoundingClientRect().left &&
+      infoButton.getBoundingClientRect().bottom <= map.getBoundingClientRect().top,
+      "El icono de información debe estar a la izquierda de archivo y fuera del mapa.");
+    infoButton.click();
+    check(!info.hidden && doc.activeElement === doc.querySelector("#info-drawer-close"),
+      "La guía debe abrirse y enfocar el botón de cierre en escritorio.");
+    doc.dispatchEvent(new app.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    check(info.hidden && doc.activeElement === infoButton, "Escape debe cerrar la guía y devolver el foco.");
     check(app.getComputedStyle(doc.querySelector(".inline-title"), "::after").content === '" \u270e"' &&
       app.getComputedStyle(doc.querySelector(".inline-date"), "::after").content === '"\u270e"',
       "Los indicadores de edición deben mostrarse sin caracteres extraños.");
