@@ -3,6 +3,9 @@ const mobileTools = document.getElementById("mobile-tools");
 const mobileAdd = document.getElementById("mobile-add");
 const desktopOptions = document.getElementById("desktop-options");
 const desktopOptionsButton = document.getElementById("desktop-options-button");
+const fileDrawerButton = document.getElementById("file-drawer-button");
+const fileDrawerPanel = document.getElementById("file-drawer-panel");
+const fileDrawerClose = document.getElementById("file-drawer-close");
 const mobilePan = document.getElementById("mobile-pan");
 const zoomIn = document.getElementById("zoom-in");
 const zoomOut = document.getElementById("zoom-out");
@@ -41,6 +44,7 @@ function updateView() {
   mobilePan.disabled = zoom <= 1;
   if (zoom <= 1) setPan(false);
   updateMobileTargets();
+  updateSelectionDelete();
 }
 
 function setZoom(next) {
@@ -59,17 +63,50 @@ function setPan(active) {
   mobilePan.setAttribute("aria-pressed", String(active));
 }
 
+function closeFileDrawer(restoreFocus = false) {
+  fileDrawerPanel.hidden = true;
+  fileDrawerButton.setAttribute("aria-expanded", "false");
+  if (restoreFocus) fileDrawerButton.focus();
+}
+
 mobileAdd.addEventListener("click", () => {
+  closeFileDrawer();
   desktopOptions.hidden = true;
   desktopOptionsButton.setAttribute("aria-expanded", "false");
   mobileTools.hidden = !mobileTools.hidden;
   mobileAdd.setAttribute("aria-expanded", String(!mobileTools.hidden));
 });
 desktopOptionsButton.addEventListener("click", () => {
+  closeFileDrawer();
   mobileTools.hidden = true;
   mobileAdd.setAttribute("aria-expanded", "false");
   desktopOptions.hidden = !desktopOptions.hidden;
   desktopOptionsButton.setAttribute("aria-expanded", String(!desktopOptions.hidden));
+});
+fileDrawerButton.addEventListener("click", () => {
+  mobileTools.hidden = true;
+  mobileAdd.setAttribute("aria-expanded", "false");
+  desktopOptions.hidden = true;
+  desktopOptionsButton.setAttribute("aria-expanded", "false");
+  fileDrawerPanel.hidden = !fileDrawerPanel.hidden;
+  fileDrawerButton.setAttribute("aria-expanded", String(!fileDrawerPanel.hidden));
+  if (!fileDrawerPanel.hidden) fileDrawerClose.focus();
+});
+fileDrawerClose.addEventListener("click", () => closeFileDrawer(true));
+fileDrawerPanel.addEventListener("click", event => {
+  if (event.target.closest("#save-map, #load-map, #export-png")) closeFileDrawer();
+});
+document.addEventListener("pointerdown", event => {
+  if (fileDrawerPanel.hidden || fileDrawerPanel.contains(event.target) || fileDrawerButton.contains(event.target)) return;
+  closeFileDrawer();
+  if (map.contains(event.target)) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+}, true);
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape" || fileDrawerPanel.hidden) return;
+  closeFileDrawer(true);
 });
 mobileTools.querySelectorAll("[data-tool]").forEach(button => button.addEventListener("click", () => {
   setPan(false);
@@ -87,8 +124,6 @@ mobilePan.addEventListener("click", () => {
   status.textContent = active ? "Arrastra el mapa para desplazarte; pulsa Mover mapa para volver a editar." :
     "Desplazamiento del mapa desactivado.";
 });
-document.getElementById("mobile-delete").addEventListener("click", removeSelected);
-
 map.addEventListener("pointerdown", event => {
   if (mobilePan.getAttribute("aria-pressed") !== "true" || event.button !== 0) return;
   event.preventDefault();
@@ -126,5 +161,8 @@ mobileScreen.addEventListener("change", () => {
   }
   updateView();
 });
-window.addEventListener("resize", updateMobileTargets);
+window.addEventListener("resize", () => {
+  updateMobileTargets();
+  updateSelectionDelete();
+});
 updateView();

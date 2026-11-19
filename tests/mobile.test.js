@@ -45,15 +45,72 @@ document.getElementById("app").addEventListener("load", async () => {
     check(app.getComputedStyle(doc.querySelector(".sidebar")).display === "none" &&
       app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none" &&
       app.getComputedStyle(map).touchAction === "pan-y", "En móvil debe poder desplazarse la página desde el mapa.");
+    const drawerButton = doc.querySelector("#file-drawer-button");
+    const drawer = doc.querySelector("#file-drawer-panel");
+    drawerButton.click();
+    check(!drawer.hidden && drawerButton.getAttribute("aria-expanded") === "true" &&
+      ["#save-map", "#load-map", "#export-png"].every(selector => doc.querySelector(selector).getBoundingClientRect()
+        .width >= 44) && Math.abs(drawer.getBoundingClientRect().right - app.innerWidth) < 1 &&
+      drawer.getBoundingClientRect().height >= app.innerHeight,
+      "El panel lateral debe ocupar el borde derecho y mostrar las tres acciones de archivo.");
+    doc.dispatchEvent(new app.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    check(drawer.hidden && doc.activeElement === drawerButton && drawerButton.getAttribute("aria-expanded") === "false",
+      "Escape debe cerrar el panel de archivo y devolver el foco al tirador.");
+    drawerButton.click();
+    doc.querySelector("#file-drawer-close").click();
+    check(drawer.hidden && doc.activeElement === drawerButton, "El botón de cierre debe devolver el foco al archivo.");
+    drawerButton.click();
+    app.setTool("high", "weak");
+    const mapCenter = screenPoint(600, 350);
+    pointer(map, "pointerdown", mapCenter.x, mapCenter.y);
+    check(drawer.hidden && drawerButton.getAttribute("aria-expanded") === "false" && state.objects.length === 0,
+      "Tocar fuera debe cerrar el panel sin añadir accidentalmente un elemento al mapa.");
+    app.setTool(null);
+    drawerButton.click();
+    const clickAnchor = app.HTMLAnchorElement.prototype.click;
+    let download;
+    app.HTMLAnchorElement.prototype.click = function () {
+      download = this.download;
+    };
+    doc.querySelector("#save-map").click();
+    app.HTMLAnchorElement.prototype.click = clickAnchor;
+    check(drawer.hidden && download === "isobaras.json", "Guardar debe ejecutar la acción y cerrar el panel.");
+    drawerButton.click();
+    const clickInput = app.HTMLInputElement.prototype.click;
+    let fileOpened = false;
+    app.HTMLInputElement.prototype.click = function () {
+      if (this === doc.querySelector("#map-file")) fileOpened = true;
+      else clickInput.call(this);
+    };
+    doc.querySelector("#load-map").click();
+    app.HTMLInputElement.prototype.click = clickInput;
+    check(drawer.hidden && fileOpened, "Cargar debe abrir el selector de archivos y cerrar el panel.");
+    drawerButton.click();
+    app.HTMLAnchorElement.prototype.click = function () {
+      download = this.download;
+    };
+    doc.querySelector("#export-png").click();
+    check(drawer.hidden, "Descargar PNG debe cerrar el panel.");
+    const deadline = Date.now() + 10000;
+    while (doc.querySelector("#export-png").disabled && Date.now() < deadline) await nextFrame();
+    app.HTMLAnchorElement.prototype.click = clickAnchor;
+    check(download === "isobaras.png", "La descarga del PNG debe continuar después de cerrar el panel.");
     for (const width of [320, 347, 348, 390]) {
       frame.style.width = `${width}px`;
       await nextFrame();
+      const fileBounds = drawerButton.getBoundingClientRect();
       check([...doc.querySelectorAll(".mobile-actions button")].every(button => {
         const bounds = button.getBoundingClientRect();
         return app.getComputedStyle(button).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
-      }) && doc.documentElement.scrollWidth <= width,
+      }) && fileBounds.width >= 44 && fileBounds.height >= 44 && fileBounds.bottom <= map.getBoundingClientRect().top &&
+        doc.documentElement.scrollWidth <= width,
       "Todos los botones móviles deben estar visibles y medir al menos 44 píxeles sin desbordar.");
     }
+    app.scrollTo(0, 200);
+    await nextFrame();
+    check(drawerButton.getBoundingClientRect().bottom <= map.getBoundingClientRect().top,
+      "El icono de archivo no debe tapar el mapa al desplazarse por la página.");
+    app.scrollTo(0, 0);
 
     const title = doc.querySelector("#inline-title");
     const day = doc.querySelector("#inline-day");
@@ -95,7 +152,8 @@ document.getElementById("app").addEventListener("load", async () => {
 
     doc.querySelector("#desktop-options-button").click();
     check(!doc.querySelector("#desktop-options").hidden &&
-      doc.querySelector("#desktop-options-button").getAttribute("aria-expanded") === "true",
+      doc.querySelector("#desktop-options-button").getAttribute("aria-expanded") === "true" &&
+      doc.querySelector("#desktop-options").contains(doc.querySelector("#clear")),
       "Capas debe abrirse desde la barra móvil.");
     doc.querySelector("#desktop-air").click();
     doc.querySelector("#desktop-precipitation").click();
@@ -111,7 +169,14 @@ document.getElementById("app").addEventListener("load", async () => {
     pointer(map, "pointerdown", position.x, position.y);
     const center = state.objects[0];
     check(center && center.x === 600 && center.y === 350 && state.selected === center.id &&
-      doc.querySelector("#mobile-delete").disabled === false, "El centro debe colocarse y quedar seleccionado.");
+      !doc.querySelector("#delete").hidden, "El centro debe colocarse y mostrar su papelera.");
+    const deleteButton = doc.querySelector("#delete");
+    const deleteBounds = deleteButton.getBoundingClientRect();
+    check(deleteBounds.width >= 44 && deleteBounds.height >= 44 &&
+      app.getComputedStyle(deleteButton).position === "absolute" &&
+      parseFloat(app.getComputedStyle(deleteButton, "::before").width) < deleteBounds.width &&
+      Math.abs(deleteBounds.left - position.x) < 80 && Math.abs(deleteBounds.top - position.y) < 80,
+      "La papelera debe ser pequeña, estar junto al centro y conservar un objetivo táctil amplio.");
     const hit = doc.querySelector(".mobile-center-hit");
     const scale = map.getScreenCTM().a;
     check(Math.abs(Number(hit.getAttribute("r")) * scale - 22) < .1 &&
@@ -120,6 +185,12 @@ document.getElementById("app").addEventListener("load", async () => {
     await nextFrame();
     app.stopWind();
     const original = await imagePixels();
+    deleteButton.hidden = true;
+    const withoutDelete = await imagePixels();
+    deleteButton.hidden = false;
+    check(original.width === withoutDelete.width && original.height === withoutDelete.height &&
+      original.data.every((value, index) => value === withoutDelete.data[index]),
+      "La papelera interactiva no debe aparecer en el PNG.");
     doc.querySelector("#zoom-in").click();
     doc.querySelector("#zoom-in").click();
     check(box().width === 300 && box().height === 175 && doc.querySelector("#zoom-in").disabled &&
@@ -135,7 +206,11 @@ document.getElementById("app").addEventListener("load", async () => {
     pointer(doc.querySelector(".mobile-center-hit"), "pointerdown", start.x, start.y);
     pointer(map, "pointermove", start.x + 30, start.y);
     pointer(map, "pointerup", start.x + 30, start.y);
-    check(center.x > 600 && center.x < 650, "Arrastrar el centro ampliado debe actualizar sus coordenadas reales.");
+    const movedDelete = deleteButton.getBoundingClientRect();
+    const movedPoint = screenPoint(center.x, center.y);
+    check(center.x > 600 && center.x < 650 && Math.abs(movedDelete.left - movedPoint.x) < 80 &&
+      Math.abs(movedDelete.top - movedPoint.y) < 80,
+      "La papelera debe seguir al centro al moverlo con zoom.");
     const handle = doc.querySelector('[data-handle="east"]');
     const oldShape = center.shape.east;
     const handlePoint = screenPoint(center.x + app.centerBounds(center, 3).east, center.y);
@@ -175,8 +250,8 @@ document.getElementById("app").addEventListener("load", async () => {
     pointer(map, "pointermove", bendPoint.x, bendPoint.y + 20);
     pointer(map, "pointerup", bendPoint.x, bendPoint.y + 20);
     check(front.bend !== undefined && front.bend !== -11.25, "Debe poder curvarse un frente ampliado.");
-    doc.querySelector("#mobile-delete").click();
-    check(!state.objects.includes(front) && doc.querySelector("#mobile-delete").disabled,
+    deleteButton.click();
+    check(!state.objects.includes(front) && deleteButton.hidden,
       "Eliminar debe actuar sobre la selección actual.");
     doc.querySelector("#mobile-add").click();
     doc.querySelector("#desktop-options-button").click();
@@ -195,11 +270,20 @@ document.getElementById("app").addEventListener("load", async () => {
       "Capas debe mostrar las opciones de altura y la copia hacia superficie.");
     doc.querySelector('#desktop-jet-options [data-jet-mode="manual"]').click();
     check(state.jetMode === "manual" && app.activeHeightJet(), "El modo manual del chorro debe funcionar en móvil.");
+    check(!deleteButton.hidden, "La papelera también debe permitir eliminar el chorro manual.");
     doc.querySelector('#desktop-jet-options [data-jet-mode="automatic"]').click();
     check(state.jetMode === "automatic", "El modo automático del chorro debe funcionar en móvil.");
     doc.querySelector("#mobile-add").click();
     doc.querySelector('#mobile-tools [data-layer="surface"]').click();
     check(!doc.querySelector("#mobile-fronts").hidden, "Los frentes deben volver al plano de superficie.");
+    doc.querySelector("#desktop-options-button").click();
+    const confirm = app.confirm;
+    app.confirm = () => true;
+    doc.querySelector("#clear").click();
+    app.confirm = confirm;
+    check(!state.objects.some(object => object.layer === "surface") &&
+      state.objects.some(object => object.layer === "upper" && object.type === "high"),
+      "Limpiar capa debe estar en Capas y conservar el otro plano.");
 
     frame.style.width = "1200px";
     await nextFrame();

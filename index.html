@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#122638">
   <title>Isobaras · Laboratorio del tiempo</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
   <script defer src="assets/land.js"></script>
   <script defer src="map.js"></script>
   <script defer src="symbols.js"></script>
@@ -14,7 +14,7 @@
   <script defer src="wind.js"></script>
   <script defer src="air.js"></script>
   <script defer src="app.js"></script>
-  <script defer src="mobile.js"></script>
+  <script defer src="mobile.js?v=3"></script>
   <script defer src="export.js"></script>
   <script defer src="save.js"></script>
 </head>
@@ -126,14 +126,9 @@
           <h2>Tu mapa meteorológico</h2>
           <p id="canvas-description">Isobaras, centros de acción y frentes</p>
         </div>
-        <div class="canvas-actions">
-          <button type="button" id="save-map">Guardar mapa</button>
-          <button type="button" id="load-map">Cargar mapa</button>
-          <input id="map-file" type="file" accept=".json,application/json" hidden>
-          <button type="button" id="export-png">Descargar PNG</button>
-          <button type="button" id="delete" disabled>Eliminar selección</button>
-          <button type="button" id="clear">Limpiar capa</button>
-        </div>
+        <button type="button" id="file-drawer-button" aria-label="Archivo" title="Archivo" aria-expanded="false" aria-controls="file-drawer-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l3 3v15H4V3h1Zm3 0v6h8V3M7 21v-8h10v8M14 4v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </button>
       </div>
       <div class="map-card">
         <div class="map-toolbar">
@@ -187,6 +182,9 @@
               <g id="objects"></g>
             </g>
           </svg>
+          <button type="button" id="delete" class="selection-delete" aria-label="Eliminar selección" title="Eliminar selección" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 3v7m4-7v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
           <div class="map-scale">
             <span>ESQUEMA DIDÁCTICO</span>
             <strong>NO ES UN PRONÓSTICO</strong>
@@ -200,6 +198,19 @@
       <div class="bottom-notes"><p><span>ⓘ</span> Los colores simulan el desplazamiento del aire según la estación y el viento dibujado. La evolución está acelerada y es orientativa.</p><p>No es un pronóstico meteorológico.</p></div>
     </section>
   </main>
+  <div class="file-drawer">
+    <section id="file-drawer-panel" class="file-drawer-panel" aria-label="Archivo" hidden>
+      <div class="file-drawer-heading">
+        <h2>Archivo</h2>
+        <button type="button" id="file-drawer-close" aria-label="Cerrar archivo">&times;</button>
+      </div>
+      <p>Guarda o recupera tu mapa.</p>
+      <button type="button" id="save-map">Guardar mapa</button>
+      <button type="button" id="load-map">Cargar mapa</button>
+      <input id="map-file" type="file" accept=".json,application/json" hidden>
+      <button type="button" id="export-png">Descargar PNG</button>
+    </section>
+  </div>
   <div class="mobile-dock" aria-label="Herramientas del mapa">
     <div class="mobile-tools" id="mobile-tools" hidden>
       <p>Plano de análisis</p>
@@ -239,6 +250,7 @@
       </div>
       <button type="button" id="desktop-copy" disabled>Copiar a altura</button>
       <p class="helper">Sustituye los centros del otro plano; conserva los demás elementos.</p>
+      <button type="button" id="clear">Limpiar capa</button>
     </div>
     <div class="mobile-actions">
       <button type="button" id="mobile-add" aria-expanded="false" aria-controls="mobile-tools">Añadir</button>
@@ -247,7 +259,6 @@
       <button type="button" id="zoom-in" aria-label="Acercar mapa">+</button>
       <button type="button" id="zoom-reset" aria-label="Mostrar todo el mapa">100%</button>
       <button type="button" id="mobile-pan" aria-pressed="false">Mover mapa</button>
-      <button type="button" id="mobile-delete" aria-label="Eliminar selección" disabled>Eliminar</button>
     </div>
   </div>
   <footer class="site-footer" id="attribution">

@@ -110,8 +110,7 @@ function render() {
     if (object.id === state.selected) node.classList.add("selected");
     objectsLayer.append(node);
   }
-  deleteButton.disabled = state.selected === null;
-  document.getElementById("mobile-delete").disabled = state.selected === null;
+  updateSelectionDelete();
   copyCentersButton.disabled = !state.objects.some(object => object.layer === state.layer && isCenter(object));
   desktopCopy.disabled = copyCentersButton.disabled;
   if (typeof updateMobileTargets === "function") updateMobileTargets();
@@ -120,6 +119,34 @@ function render() {
 
 function isCenter(object) {
   return object.type === "high" || object.type === "low";
+}
+
+function updateSelectionDelete() {
+  const object = state.objects.find(item => item.id === state.selected && item.layer === state.layer);
+  const matrix = map.getScreenCTM();
+  const bounds = map.getBoundingClientRect();
+  if (!object || !matrix || !bounds.width || !bounds.height) {
+    deleteButton.hidden = true;
+    return;
+  }
+  const point = map.createSVGPoint();
+  const anchor = isFront(object) ? frontBendPoint(object) : {
+    x: object.x,
+    y: object.manualJet ? jetYAt(object, object.x) : object.y
+  };
+  point.x = anchor.x;
+  point.y = anchor.y;
+  const screen = point.matrixTransform(matrix);
+  const wrap = document.getElementById("map-wrap").getBoundingClientRect();
+  deleteButton.hidden = false;
+  const size = deleteButton.getBoundingClientRect().width;
+  const offset = size / 2 + 20;
+  const x = screen.x - wrap.left;
+  const y = screen.y - wrap.top;
+  const left = x + (x + offset + size / 2 <= bounds.width ? offset : -offset) - size / 2;
+  const top = y + (y - offset - size / 2 >= 0 ? -offset : offset) - size / 2;
+  deleteButton.style.left = `${Math.max(0, Math.min(bounds.width - size, left))}px`;
+  deleteButton.style.top = `${Math.max(0, Math.min(bounds.height - size, top))}px`;
 }
 
 function copyCenters() {
@@ -561,6 +588,7 @@ map.addEventListener("pointermove", event => {
   object.y = Math.max(0, Math.min(MAP_HEIGHT, point.y - state.drag.dy));
   const node = objectsLayer.querySelector(`[data-id="${object.id}"]`);
   node.setAttribute("transform", `translate(${object.x} ${object.y})`);
+  updateSelectionDelete();
   if (object.type === "high" || object.type === "low" || object.manualJet) schedulePressureField();
 });
 
@@ -580,6 +608,7 @@ function endDrag(event) {
     snapFrontPosition(object);
     objectsLayer.querySelector(`[data-id="${object.id}"]`).setAttribute("transform",
       `translate(${object.x} ${object.y})`);
+    updateSelectionDelete();
   }
 }
 map.addEventListener("pointerup", endDrag);
@@ -662,5 +691,6 @@ map.addEventListener("keydown", event => {
   if (isFront(object)) snapFrontPosition(object, previous);
   objectsLayer.querySelector(`[data-id="${object.id}"]`).setAttribute("transform",
     `translate(${object.x} ${object.y})`);
+  updateSelectionDelete();
   if (object.type === "high" || object.type === "low" || object.manualJet) schedulePressureField();
 });

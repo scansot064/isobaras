@@ -12,6 +12,8 @@ document.getElementById("app").addEventListener("load", async () => {
     check(app.getComputedStyle(doc.querySelector(".sidebar")).display === "none" &&
       app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none",
       "En escritorio el mapa debe sustituir al panel lateral y mostrar herramientas flotantes.");
+    check(doc.querySelector("#file-drawer-button").getBoundingClientRect().bottom <= map.getBoundingClientRect().top,
+      "El icono de archivo debe permanecer fuera del mapa también en escritorio.");
     check(app.getComputedStyle(doc.querySelector(".inline-title"), "::after").content === '" \u270e"' &&
       app.getComputedStyle(doc.querySelector(".inline-date"), "::after").content === '"\u270e"',
       "Los indicadores de edición deben mostrarse sin caracteres extraños.");

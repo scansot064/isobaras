@@ -476,10 +476,12 @@ input[type=text] {
 }
 
 .canvas-heading {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: end;
   gap: 20px;
+  padding-right: 52px;
   margin-bottom: 22px
 }
 
@@ -499,25 +501,116 @@ input[type=text] {
   margin: 0 4px
 }
 
-.canvas-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px
+.file-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 25;
+  pointer-events: none
 }
 
-.canvas-actions button {
+.file-drawer button {
+  pointer-events: auto;
   background: #fff;
   border: 1px solid #dce5e3;
   border-radius: 6px;
   color: #657b7d;
   padding: 10px 12px;
+  min-height: 44px;
   font-size: 11px;
   font-weight: 650
 }
 
-.canvas-actions button:disabled {
+.file-drawer button:disabled {
   opacity: .45;
   cursor: default
+}
+
+#file-drawer-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #526e70
+}
+
+#file-drawer-button::before {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #dce5e3;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 6px #233d3a1c
+}
+
+#file-drawer-button[aria-expanded=true]::before {
+  background: #dcece8;
+  border-color: #6e9e9a
+}
+
+#file-drawer-button svg {
+  position: relative;
+  width: 18px;
+  height: 18px
+}
+
+.file-drawer-panel {
+  pointer-events: auto;
+  width: min(270px, calc(100vw - 44px));
+  height: 100%;
+  overflow-y: auto;
+  padding: 26px 18px;
+  background: #fff;
+  border-left: 1px solid #dce5e3;
+  box-shadow: -6px 0 24px #233d3a26
+}
+
+.file-drawer-panel h2 {
+  margin: 0;
+  color: #273d48;
+  font-size: 17px
+}
+
+.file-drawer-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between
+}
+
+.file-drawer-panel #file-drawer-close {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font-size: 22px
+}
+
+.file-drawer-panel p {
+  margin: 8px 0 20px;
+  color: #91a0a1;
+  font-size: 11px
+}
+
+.file-drawer-panel button {
+  display: block;
+  width: 100%;
+  text-align: left
+}
+
+.file-drawer-panel button + button,
+.file-drawer-panel input + button {
+  margin-top: 6px
 }
 
 .map-card {
@@ -569,11 +662,42 @@ input[type=text] {
   overflow: hidden
 }
 
-.map-wrap svg {
+.map-wrap > svg {
   width: 100%;
   height: auto;
   display: block;
   touch-action: none
+}
+
+.selection-delete {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #a45c4e;
+  touch-action: manipulation
+}
+
+.selection-delete::before {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #dce5e3;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px #233d3a33
+}
+
+.selection-delete svg {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px
 }
 
 .ocean {
@@ -931,7 +1055,8 @@ input[type=text] {
     margin-top: 0
   }
 
-  #desktop-copy {
+  #desktop-copy,
+  #clear {
     width: 100%;
     margin-top: 16px
   }
@@ -1046,13 +1171,13 @@ input[type=text] {
     padding-bottom: 90px
   }
 
-  .map-wrap svg {
+  .map-wrap > svg {
     touch-action: pan-y;
     scroll-margin: 20px 0 85px
   }
 
-  .map-wrap svg.map-placing,
-  .map-wrap svg.map-panning,
+  .map-wrap > svg.map-placing,
+  .map-wrap > svg.map-panning,
   .map-object {
     touch-action: none
   }
@@ -1072,7 +1197,7 @@ input[type=text] {
 
   .mobile-actions {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 4px
   }
 
@@ -1146,23 +1271,15 @@ input[type=text] {
     margin-top: 0
   }
 
-  #desktop-copy {
+  #desktop-copy,
+  #clear {
     width: 100%;
     margin-top: 16px
   }
-}
 
-@media(max-width:347px) {
-  .mobile-actions {
-    grid-template-columns: repeat(4, minmax(0, 1fr))
-  }
-
-  .site-footer {
-    padding-bottom: 145px
-  }
-
-  .map-wrap svg {
-    scroll-margin-bottom: 145px
+  .selection-delete {
+    width: 44px;
+    height: 44px
   }
 }
 
