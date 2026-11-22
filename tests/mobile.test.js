@@ -290,13 +290,52 @@ document.getElementById("app").addEventListener("load", async () => {
     const center = state.objects[0];
     check(center && center.x === 600 && center.y === 350 && state.selected === center.id &&
       !doc.querySelector("#delete").hidden, "El centro debe colocarse y mostrar su papelera.");
+    const stronger = doc.querySelector("#center-strengthen");
+    const weaker = doc.querySelector("#center-weaken");
+    check(!stronger.hidden && !weaker.hidden && weaker.disabled && stronger.textContent === "+" &&
+      weaker.textContent === "−" && stronger.getBoundingClientRect().width >= 44 &&
+      stronger.getBoundingClientRect().height >= 44, "El centro debe ofrecer controles táctiles de potencia.");
+    for (let i = 0; i < 12; i++) stronger.click();
+    check(center.intensityBoost === 48 && stronger.disabled && !weaker.disabled &&
+      doc.querySelector("#status").textContent.includes("48 hPa"),
+      "La potencia debe aumentar en pasos de 4 hPa hasta 48 hPa.");
+    weaker.click();
+    check(center.intensityBoost === 44 && !stronger.disabled, "La potencia debe poder reducirse.");
+    for (let i = 0; i < 11; i++) weaker.click();
+    check(center.intensityBoost === 0 && weaker.disabled, "La potencia no debe bajar de la intensidad original.");
     const deleteButton = doc.querySelector("#delete");
+    const strongBounds = stronger.getBoundingClientRect();
     const deleteBounds = deleteButton.getBoundingClientRect();
     check(deleteBounds.width >= 44 && deleteBounds.height >= 44 &&
       app.getComputedStyle(deleteButton).position === "absolute" &&
       parseFloat(app.getComputedStyle(deleteButton, "::before").width) < deleteBounds.width &&
       Math.abs(deleteBounds.left - position.x) < 80 && Math.abs(deleteBounds.top - position.y) < 80,
       "La papelera debe ser pequeña, estar junto al centro y conservar un objetivo táctil amplio.");
+    check(strongBounds.right <= position.x && deleteBounds.left >= position.x &&
+      Math.abs(strongBounds.top - deleteBounds.top) < 1,
+      "El aumento de potencia debe estar en la esquina opuesta a la papelera.");
+    for (const [x, y] of [[0, 0], [1200, 0], [0, 700], [1200, 700]]) {
+      center.x = x;
+      center.y = y;
+      app.render();
+      const buttons = [deleteButton, stronger, weaker];
+      const boxes = buttons.map(button => button.getBoundingClientRect());
+      const bounds = map.getBoundingClientRect();
+      check(boxes.every(box => box.left >= bounds.left - 1 && box.right <= bounds.right + 1 &&
+        box.top >= bounds.top - 1 && box.bottom <= bounds.bottom + 1) &&
+        boxes.every((box, i) => boxes.every((other, j) => i === j || box.right <= other.left ||
+          box.left >= other.right || box.bottom <= other.top || box.top >= other.bottom)),
+        "Los controles deben permanecer dentro del mapa y no solaparse en sus esquinas.");
+    }
+    center.x = 600;
+    center.y = 350;
+    app.render();
+    center.type = "low";
+    app.render();
+    check(stronger.textContent === "−" && weaker.textContent === "+",
+      "En una borrasca los símbolos deben invertirse.");
+    center.type = "high";
+    app.render();
     const hit = doc.querySelector(".mobile-center-hit");
     const scale = map.getScreenCTM().a;
     check(Math.abs(Number(hit.getAttribute("r")) * scale - 22) < .1 &&
@@ -306,11 +345,15 @@ document.getElementById("app").addEventListener("load", async () => {
     app.stopWind();
     const original = await imagePixels();
     deleteButton.hidden = true;
+    stronger.hidden = true;
+    weaker.hidden = true;
     const withoutDelete = await imagePixels();
     deleteButton.hidden = false;
+    stronger.hidden = false;
+    weaker.hidden = false;
     check(original.width === withoutDelete.width && original.height === withoutDelete.height &&
       original.data.every((value, index) => value === withoutDelete.data[index]),
-      "La papelera interactiva no debe aparecer en el PNG.");
+      "Los controles interactivos no deben aparecer en el PNG.");
     doc.querySelector("#zoom-in").click();
     doc.querySelector("#zoom-in").click();
     check(box().width === 300 && box().height === 175 && doc.querySelector("#zoom-in").disabled &&
@@ -327,10 +370,12 @@ document.getElementById("app").addEventListener("load", async () => {
     pointer(map, "pointermove", start.x + 30, start.y);
     pointer(map, "pointerup", start.x + 30, start.y);
     const movedDelete = deleteButton.getBoundingClientRect();
+    const movedStronger = stronger.getBoundingClientRect();
     const movedPoint = screenPoint(center.x, center.y);
     check(center.x > 600 && center.x < 650 && Math.abs(movedDelete.left - movedPoint.x) < 80 &&
-      Math.abs(movedDelete.top - movedPoint.y) < 80,
-      "La papelera debe seguir al centro al moverlo con zoom.");
+      Math.abs(movedDelete.top - movedPoint.y) < 80 && movedStronger.right <= movedPoint.x &&
+      Math.abs(movedStronger.top - movedDelete.top) < 1,
+      "La papelera y el control de potencia deben seguir al centro al moverlo con zoom.");
     const handle = doc.querySelector('[data-handle="east"]');
     const oldShape = center.shape.east;
     const handlePoint = screenPoint(center.x + app.centerBounds(center, 3).east, center.y);

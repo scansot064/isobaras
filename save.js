@@ -1,7 +1,7 @@
 function mapDocument() {
   return {
     format: "isobaras",
-    version: 2,
+    version: 3,
     title: titleInput.value,
     date: mapDate(),
     year: selectedYear,
@@ -20,7 +20,7 @@ function validateMapDocument(data) {
   };
   const numberIn = (value, min, max) => Number.isFinite(value) && value >= min && value <= max;
   if (!data || typeof data !== "object" || Array.isArray(data) || data.format !== "isobaras" ||
-      ![1, 2].includes(data.version) || typeof data.title !== "string" || typeof data.date !== "string" ||
+      ![1, 2, 3].includes(data.version) || typeof data.title !== "string" || typeof data.date !== "string" ||
       !["surface", "upper"].includes(data.layer) || !["automatic", "manual"].includes(data.jetMode) ||
       typeof data.airEnabled !== "boolean" || typeof data.precipitationEnabled !== "boolean" ||
       !Array.isArray(data.objects)) invalid();
@@ -63,10 +63,13 @@ function validateMapDocument(data) {
     };
     if (object.type === "high" || object.type === "low") {
       if (!["weak", "medium", "strong"].includes(object.strength) || !object.shape ||
-          !["east", "west", "north", "south"].every(side => numberIn(object.shape[side], .4, 3))) invalid();
+          !["east", "west", "north", "south"].every(side => numberIn(object.shape[side], .4, 3)) ||
+          (data.version === 3 && (!Number.isInteger(object.intensityBoost) ||
+            !numberIn(object.intensityBoost, 0, INTENSITY_MAX) || object.intensityBoost % INTENSITY_STEP !== 0))) invalid();
       return {
         ...common,
         strength: object.strength,
+        intensityBoost: data.version === 3 ? object.intensityBoost : 0,
         shape: {
           east: object.shape.east,
           west: object.shape.west,

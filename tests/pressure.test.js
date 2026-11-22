@@ -23,6 +23,22 @@ document.getElementById("app").addEventListener("load", () => {
     const sources = app.pressureSources([high, low]);
     check(app.pressureAt(480, 350, sources) > 1013, "El anticiclón debe elevar la presión.");
     check(app.pressureAt(720, 350, sources) < 1013, "La borrasca debe reducir la presión.");
+    for (const type of ["high", "low"]) {
+      const center = makeCenter(type, 600, "strong");
+      const baseline = app.pressureAt(600, 350, app.pressureSources([center]));
+      center.intensityBoost = 20;
+      const adjusted = app.pressureAt(600, 350, app.pressureSources([center]));
+      check(adjusted === baseline + (type === "high" ? 20 : -20),
+        "La potencia adicional debe elevar el anticiclón o profundizar la borrasca en la cantidad indicada.");
+      check(app.heightSources([{ ...center, layer: "upper" }])[0].amplitude ===
+        app.heightSources([{ ...center, intensityBoost: 0, layer: "upper" }])[0].amplitude,
+        "La potencia adicional de superficie no debe afectar al campo de altura.");
+    }
+    const deepLow = { ...makeCenter("low", 600, "strong"), intensityBoost: 24 };
+    const deepSources = app.pressureSources([deepLow]);
+    check(app.pressureAt(600, 350, deepSources) <= 970 &&
+      app.pressureContours(app.pressureGrid(deepSources)).has(968),
+      "Una borrasca intensa ajustada debe poder alcanzar menos de 970 hPa y dibujar la isobara de 968.");
     check(app.pressureAt(600, 350, sources) !== app.pressureAt(600, 350, app.pressureSources([high])),
       "Ambos centros deben contribuir al mismo campo.");
     const initial = app.pressureAt(580, 350, app.pressureSources([high]));

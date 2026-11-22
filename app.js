@@ -24,6 +24,8 @@ const desktopCopy = document.getElementById("desktop-copy");
 const status = document.getElementById("status");
 const instruction = document.getElementById("instruction");
 const deleteButton = document.getElementById("delete");
+const centerWeaken = document.getElementById("center-weaken");
+const centerStrengthen = document.getElementById("center-strengthen");
 const copyCentersButton = document.getElementById("copy-centers");
 const names = {
   high: "Anticiclón",
@@ -136,6 +138,8 @@ function updateSelectionDelete() {
   const bounds = map.getBoundingClientRect();
   if (!object || !matrix || !bounds.width || !bounds.height) {
     deleteButton.hidden = true;
+    centerStrengthen.hidden = true;
+    centerWeaken.hidden = true;
     return;
   }
   const point = map.createSVGPoint();
@@ -152,6 +156,36 @@ function updateSelectionDelete() {
   const offset = size / 2 + 20;
   const x = screen.x - wrap.left;
   const y = screen.y - wrap.top;
+  const isSurfaceCenter = isCenter(object) && object.layer === "surface";
+  centerStrengthen.hidden = !isSurfaceCenter;
+  centerWeaken.hidden = !isSurfaceCenter;
+  if (isSurfaceCenter) {
+    const boost = object.intensityBoost ?? 0;
+    centerWeaken.disabled = boost === 0;
+    centerStrengthen.disabled = boost === INTENSITY_MAX;
+    centerStrengthen.firstElementChild.textContent = object.type === "high" ? "+" : "−";
+    centerWeaken.firstElementChild.textContent = object.type === "high" ? "−" : "+";
+    centerStrengthen.title = `Incrementar potencia (actual: +${boost} hPa)`;
+    centerWeaken.title = `Reducir potencia (actual: +${boost} hPa)`;
+    if (x < 0 || x > bounds.width || y < 0 || y > bounds.height) {
+      deleteButton.hidden = true;
+      centerStrengthen.hidden = true;
+      centerWeaken.hidden = true;
+      return;
+    }
+    const left = Math.max(0, Math.min(bounds.width - 2 * size, x - offset - size / 2));
+    const right = Math.max(left + size, Math.min(bounds.width - size, x + offset - size / 2));
+    const top = Math.max(0, Math.min(bounds.height - 2 * size, y - offset - size / 2));
+    const bottom = Math.max(top + size, Math.min(bounds.height - size, y + offset - size / 2));
+    const deleteOnTop = y - offset - size / 2 >= 0;
+    deleteButton.style.left = `${right}px`;
+    deleteButton.style.top = `${deleteOnTop ? top : bottom}px`;
+    centerStrengthen.style.left = `${left}px`;
+    centerStrengthen.style.top = `${deleteOnTop ? top : bottom}px`;
+    centerWeaken.style.left = `${left}px`;
+    centerWeaken.style.top = `${deleteOnTop ? bottom : top}px`;
+    return;
+  }
   const left = x + (x + offset + size / 2 <= bounds.width ? offset : -offset) - size / 2;
   const top = y + (y - offset - size / 2 >= 0 ? -offset : offset) - size / 2;
   deleteButton.style.left = `${Math.max(0, Math.min(bounds.width - size, left))}px`;
@@ -484,6 +518,17 @@ desktopPrecipitation.addEventListener("change", () => {
   precipitationToggle.dispatchEvent(new Event("change"));
 });
 desktopCopy.addEventListener("click", copyCenters);
+for (const [button, direction] of [[centerWeaken, -1], [centerStrengthen, 1]]) {
+  button.addEventListener("click", () => {
+    const object = state.objects.find(item => item.id === state.selected && item.layer === "surface" &&
+      state.layer === "surface" && isCenter(item));
+    if (!object) return;
+    object.intensityBoost = Math.max(0, Math.min(INTENSITY_MAX, (object.intensityBoost ?? 0) +
+      direction * INTENSITY_STEP));
+    render();
+    status.textContent = `${object.label}: potencia adicional de ${object.intensityBoost} hPa.`;
+  });
+}
 deleteButton.addEventListener("click", removeSelected);
 copyCentersButton.addEventListener("click", copyCenters);
 document.getElementById("clear").addEventListener("click", () => {
@@ -562,6 +607,7 @@ map.addEventListener("pointerdown", event => {
       },
       rotation: 0
     };
+    if (isCenter(object)) object.intensityBoost = 0;
     if (type.startsWith("jet-")) object.points = defaultJetPoints(type);
     state.objects.push(object);
     if (isFront(object)) snapFrontPosition(object);

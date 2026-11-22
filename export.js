@@ -2,7 +2,7 @@ function cardText(card, bounds, excludeToolbar = false) {
   const lines = [];
   const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      return node.parentElement.closest("svg, .map-footer, #instruction, .title-placeholder, .year-placeholder, select") ||
+      return node.parentElement.closest("svg, .map-footer, .selection-intensity, #instruction, .title-placeholder, .year-placeholder, select") ||
         (excludeToolbar && node.parentElement.closest(".map-toolbar")) ?
         NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
     }

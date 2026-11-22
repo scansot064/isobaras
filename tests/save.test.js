@@ -47,6 +47,8 @@ document.getElementById("app").addEventListener("load", async () => {
     doc.querySelector("#air-toggle").click();
     doc.querySelector("#precipitation-toggle").click();
     const surface = place('[data-tool="high"][data-strength="strong"]', 400, 300);
+    doc.querySelector("#center-strengthen").click();
+    doc.querySelector("#center-strengthen").click();
     app.resizeCenter(surface, "east", app.centerBounds(surface, 3).east + 30);
     const front = place('[data-tool="cold"]', 700, 400);
     front.rotation = 35;
@@ -71,7 +73,8 @@ document.getElementById("app").addEventListener("load", async () => {
     check(download && download.name === "isobaras.json", "Guardar debe descargar un archivo JSON.");
     const saved = await (await app.fetch(download.url)).text();
     const data = JSON.parse(saved);
-    check(data.format === "isobaras" && data.version === 2 && data.objects.length === 4 &&
+    check(data.format === "isobaras" && data.version === 3 && data.objects.length === 4 &&
+      data.objects.find(object => object.id === surface.id).intensityBoost === 8 &&
       data.title === "Situación de clase" && data.date === "02-29" && data.year === "2024" &&
       data.airValues.length === app.eval("AIR_COLUMNS * AIR_ROWS"),
       "El archivo debe contener los dos planos, los metadatos y la distribución del aire.");
@@ -94,6 +97,7 @@ document.getElementById("app").addEventListener("load", async () => {
       doc.querySelector("#objects").classList.contains("precipitation-hidden"),
       "La carga debe restaurar los ajustes, el plano activo y la interfaz.");
     check(restoredSurface.x === surface.x && restoredSurface.shape.east === surface.shape.east &&
+      restoredSurface.intensityBoost === 8 &&
       restoredFront.rotation === 35 && restoredFront.length === 180 && restoredFront.bend === -60 &&
       restoredUpper.strength === "medium" && restoredJet.points[10][1] === jet.points[10][1] &&
       app.activeHeightJet() === restoredJet && app.eval("airState").values[0] === data.airValues[0],
@@ -108,7 +112,11 @@ document.getElementById("app").addEventListener("load", async () => {
     check(JSON.stringify(app.mapDocument()) === before && doc.querySelector("#status").textContent.includes("cancelada"),
       "Cancelar la carga debe conservar el mapa actual.");
     app.confirm = () => true;
-    for (const invalid of ["{", JSON.stringify({ ...data, version: 3 }),
+    for (const invalid of ["{", JSON.stringify({ ...data, version: 4 }),
+      JSON.stringify({ ...data, objects: data.objects.map(object => object.id === surface.id ?
+        { ...object, intensityBoost: 49 } : object) }),
+      JSON.stringify({ ...data, objects: data.objects.map(object => object.id === surface.id ?
+        { ...object, intensityBoost: 3 } : object) }),
       JSON.stringify({ ...data, date: "02-30" }), JSON.stringify({ ...data, year: "abc" }),
       JSON.stringify({ ...data, objects: [data.objects[0], data.objects[0]] }),
       JSON.stringify({ ...data, objects: data.objects.map(object => object.manualJet ?
@@ -136,9 +144,23 @@ document.getElementById("app").addEventListener("load", async () => {
     await load(JSON.stringify(legacy));
     check(doc.querySelector("#date-day").value === "29" && doc.querySelector("#date-month").value === "02" &&
       doc.querySelector("#date-year").value === "2024", "Los mapas antiguos deben conservar su fecha y año.");
+    const previous = { ...data, version: 2, objects: data.objects.map(({ intensityBoost, ...object }) => object) };
+    await load(JSON.stringify(previous));
+    check(state.objects.find(object => object.id === surface.id).intensityBoost === 0,
+      "Los mapas anteriores deben recuperar la potencia original.");
     await load(JSON.stringify({ ...data, year: "" }));
     check(doc.querySelector("#date-year").value === "" && doc.querySelector("#inline-year").value === "" &&
       app.mapDocument().year === "", "El año opcional vacío debe conservarse al guardar y cargar.");
+    doc.querySelector('[data-layer="surface"]').click();
+    app.copyCenters();
+    check(state.objects.find(object => object.layer === "upper" && object.type === "high").intensityBoost === 8,
+      "Copiar a altura debe conservar la potencia de superficie.");
+    doc.querySelector('[data-layer="upper"]').click();
+    check(doc.querySelector("#center-strengthen").hidden && doc.querySelector("#center-weaken").hidden,
+      "El ajuste no debe mostrarse en altura.");
+    app.copyCenters();
+    check(state.objects.find(object => object.layer === "surface" && object.type === "high").intensityBoost === 8,
+      "Copiar de vuelta a superficie debe recuperar la potencia.");
     app.confirm = originalConfirm;
     result.textContent = "PASS";
   } catch (error) {

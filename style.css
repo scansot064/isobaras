@@ -738,7 +738,8 @@ input[type=text] {
   touch-action: none
 }
 
-.selection-delete {
+.selection-delete,
+.selection-intensity {
   position: absolute;
   width: 36px;
   height: 36px;
@@ -751,7 +752,8 @@ input[type=text] {
   touch-action: manipulation
 }
 
-.selection-delete::before {
+.selection-delete::before,
+.selection-intensity::before {
   content: "";
   position: absolute;
   width: 28px;
@@ -767,6 +769,20 @@ input[type=text] {
   display: block;
   width: 16px;
   height: 16px
+}
+
+.selection-intensity {
+  color: #344b51;
+  font-size: 20px;
+  font-weight: 700
+}
+
+.selection-intensity span {
+  position: relative
+}
+
+.selection-intensity:disabled {
+  opacity: .5
 }
 
 .ocean {
@@ -1382,7 +1398,8 @@ input[type=text] {
     margin-top: 16px
   }
 
-  .selection-delete {
+  .selection-delete,
+  .selection-intensity {
     width: 44px;
     height: 44px
   }

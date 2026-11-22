@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#122638">
   <title>Generador interactivo de mapas de isobaras</title>
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=10">
   <script defer src="assets/land.js"></script>
   <script defer src="map.js"></script>
   <script defer src="symbols.js"></script>
-  <script defer src="pressure.js"></script>
+  <script defer src="pressure.js?v=2"></script>
   <script defer src="jet.js"></script>
   <script defer src="wind.js"></script>
   <script defer src="air.js"></script>
-  <script defer src="app.js?v=2"></script>
+  <script defer src="app.js?v=4"></script>
   <script defer src="mobile.js?v=5"></script>
-  <script defer src="export.js?v=2"></script>
-  <script defer src="save.js"></script>
+  <script defer src="export.js?v=3"></script>
+  <script defer src="save.js?v=2"></script>
 </head>
 <body>
   <header class="topbar">
@@ -189,6 +189,8 @@
           <button type="button" id="delete" class="selection-delete" aria-label="Eliminar selección" title="Eliminar selección" hidden>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 3v7m4-7v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
           </button>
+          <button type="button" id="center-strengthen" class="selection-intensity" aria-label="Incrementar potencia del centro" hidden><span aria-hidden="true">+</span></button>
+          <button type="button" id="center-weaken" class="selection-intensity" aria-label="Reducir potencia del centro" hidden><span aria-hidden="true">−</span></button>
           <div class="map-scale">
             <span>ESQUEMA DIDÁCTICO</span>
             <strong>NO ES UN PRONÓSTICO</strong>

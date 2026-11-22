@@ -5,13 +5,16 @@ const HEIGHT_INTERVAL = 60;
 const PRESSURE_COLUMNS = 120;
 const PRESSURE_ROWS = 70;
 const SIMULATION_SPEED = 2.5;
+const INTENSITY_STEP = 4;
+const INTENSITY_MAX = 48;
 
 function pressureSources(objects) {
   return objects.filter(object => object.layer === "surface" && (object.type === "high" || object.type === "low")).map(
     object => ({
       x: object.x,
       y: object.y,
-      amplitude: STRENGTH[object.strength].center[object.type] - PRESSURE_BACKGROUND,
+      amplitude: STRENGTH[object.strength].center[object.type] - PRESSURE_BACKGROUND +
+        (object.type === "high" ? 1 : -1) * (object.intensityBoost ?? 0),
       bounds: centerBounds(object, 3)
     }));
 }
