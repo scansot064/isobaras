@@ -18,6 +18,7 @@ Editor didáctico de mapas meteorológicos para el Atlántico norte y Europa occ
 - Usa **Descargar PNG** para guardar el mapa del plano visible, con su fecha, título completo, capas mostradas y pie de atribución, sin las indicaciones ni la barra inferior de información interactiva. En móvil, el título largo se ajusta en varias líneas en la imagen aunque el resumen se muestre abreviado.
 - La barra flotante **Añadir** reúne los planos, centros y frentes, y **Capas** permite controlar las masas de aire, la precipitación o el chorro y copiar centros entre planos.
 - Usa **+** y **−** para ampliar o alejar el mapa; si hay un elemento seleccionado, el zoom se centra en él. Con **Mover mapa** activado, arrastra para recorrer la zona ampliada y vuelve a pulsarlo para editar. En teléfonos, fuera de ese modo, arrastrar una zona libre permite desplazar la página; los elementos y tiradores se arrastran directamente. **100%** vuelve a mostrar todo el mapa. El zoom no modifica el mapa guardado ni el PNG.
+- El botón de café de la barra inferior abre **Buy me a coffee** en otra pestaña y requiere conexión a Internet.
 
 Sin guardar un archivo JSON, los cambios se conservan solo mientras la página esté abierta: al recargarla se pierden. Los JSON incluyen un identificador de formato y una versión para detectar archivos incompatibles.
 

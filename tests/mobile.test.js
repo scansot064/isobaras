@@ -45,6 +45,14 @@ document.getElementById("app").addEventListener("load", async () => {
     check(app.getComputedStyle(doc.querySelector(".sidebar")).display === "none" &&
       app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none" &&
       app.getComputedStyle(map).touchAction === "pan-y", "En móvil debe poder desplazarse la página desde el mapa.");
+    const donation = doc.querySelector(".donation-link");
+    const donationBox = donation.getBoundingClientRect();
+    check(donation.href === "https://buymeacoffee.com/scansot064" && donation.target === "_blank" &&
+      donation.rel.includes("noopener") && donationBox.right <= app.innerWidth && donationBox.left >= 0 &&
+      donation.previousElementSibling.id === "mobile-pan" &&
+      doc.elementFromPoint(donationBox.left + donationBox.width / 2, donationBox.top + donationBox.height / 2)
+        .closest(".donation-link") === donation,
+      "El enlace de donación debe estar a la derecha de Mover mapa y abrir la página correcta.");
     check(doc.title === "Generador interactivo de mapas de isobaras" &&
       doc.querySelector(".brand h1").textContent === doc.title && !doc.querySelector(".header-note"),
       "La cabecera y la pestaña deben mostrar el nombre del generador.");
@@ -152,10 +160,11 @@ document.getElementById("app").addEventListener("load", async () => {
       const topbar = doc.querySelector(".topbar").getBoundingClientRect();
       const metaButton = doc.querySelector("#mobile-meta-button").getBoundingClientRect();
       const toolbar = doc.querySelector(".map-toolbar").getBoundingClientRect();
-      check([...doc.querySelectorAll(".mobile-actions button")].every(button => {
+      check([...doc.querySelectorAll(".mobile-actions button, .mobile-actions .donation-link")].every(button => {
         const bounds = button.getBoundingClientRect();
         return app.getComputedStyle(button).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
-      }) && heading.top >= topbar.top && heading.bottom <= topbar.bottom && heading.right <= topbar.right &&
+      }) && Math.abs(donation.getBoundingClientRect().width - doc.querySelector("#zoom-reset").getBoundingClientRect().width) < 1 &&
+        heading.top >= topbar.top && heading.bottom <= topbar.bottom && heading.right <= topbar.right &&
         fileBounds.width >= 44 && fileBounds.height >= 44 && fileBounds.bottom <= map.getBoundingClientRect().top &&
         infoBounds.width >= 44 && infoBounds.height >= 44 && infoBounds.right <= fileBounds.left &&
         infoBounds.bottom <= map.getBoundingClientRect().top &&
