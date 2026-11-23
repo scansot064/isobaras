@@ -212,6 +212,44 @@ document.getElementById("app").addEventListener("load", () => {
     }, upperLow]);
     check(Math.abs(app.heightAt(600, app.jetYAt(manualJet, 600), movedSources, manualJet) - manualJet
       .referenceHeight) < 1e-8, "Cambiar los centros debe conservar el chorro manual en el campo.");
+
+    const windState = app.eval("windState");
+    const particle = windState.particles[0];
+    particle.x = 450;
+    particle.y = 350;
+    app.updateWindSources([upperHigh, upperLow], "upper", manualJet);
+    app.stopWind();
+    const previousVelocity = particle.velocity;
+    manualJet.points[2][1] += 100;
+    const expectedPosition = app.advanceWindPosition(particle.x, particle.y, windState.sources, .025, "upper",
+      manualJet);
+    const stalePosition = app.advanceWindPosition(particle.x, particle.y, windState.sources, .025, "upper", manualJet,
+      previousVelocity);
+    check(Math.hypot(expectedPosition[0] - stalePosition[0], expectedPosition[1] - stalePosition[1]) > 1e-6,
+      "La prueba debe modificar el viento después de calcular la velocidad.");
+    windState.lastFrame = 1000;
+    const hiddenProperty = Object.getOwnPropertyDescriptor(app.document, "hidden");
+    Object.defineProperty(app.document, "hidden", { configurable: true, value: false });
+    try {
+      app.windTick(1010);
+    } finally {
+      if (hiddenProperty) Object.defineProperty(app.document, "hidden", hiddenProperty);
+      else delete app.document.hidden;
+    }
+    app.stopWind();
+    check(Math.hypot(particle.x - expectedPosition[0], particle.y - expectedPosition[1]) < 1e-8,
+      "Al editar el chorro manual, las flechas deben usar el viento actualizado.");
+
+    particle.x = upperHigh.x;
+    particle.y = upperHigh.y;
+    particle.opacity = 0;
+    app.renderWindParticle(particle, 0);
+    particle.x += 1;
+    app.renderWindParticle(particle, 0);
+    check(particle.element.style.opacity === "0" &&
+      particle.element.getAttribute("transform").startsWith(`translate(${particle.x} ${particle.y})`),
+      "Las flechas ocultas deben mantener actualizada su posición.");
+
     app.drawPressureField([], "surface");
     app.updateWindSources([], "surface");
     check(app.document.querySelectorAll(".pressure-contour").length === 0, "Sin centros no debe haber isobaras.");
