@@ -156,6 +156,8 @@ document.getElementById("app").addEventListener("load", async () => {
       const fileBounds = drawerButton.getBoundingClientRect();
       const infoBounds = infoButton.getBoundingClientRect();
       const presetBounds = doc.querySelector("#preset-select").getBoundingClientRect();
+      const presetFrame = app.getComputedStyle(doc.querySelector(".preset-picker"), "::before");
+      const iconFrame = app.getComputedStyle(infoButton, "::before");
       const canvasTitle = doc.querySelector(".canvas-heading h2").getBoundingClientRect();
       const heading = doc.querySelector(".brand h1").getBoundingClientRect();
       const topbar = doc.querySelector(".topbar").getBoundingClientRect();
@@ -169,6 +171,7 @@ document.getElementById("app").addEventListener("load", async () => {
         fileBounds.width >= 44 && fileBounds.height >= 44 && fileBounds.bottom <= map.getBoundingClientRect().top &&
         infoBounds.width >= 44 && infoBounds.height >= 44 && infoBounds.right <= fileBounds.left &&
         presetBounds.height >= 44 && presetBounds.left >= 0 && presetBounds.right <= infoBounds.left &&
+        presetFrame.height === iconFrame.height && presetFrame.borderTopWidth === iconFrame.borderTopWidth &&
         infoBounds.bottom <= map.getBoundingClientRect().top &&
         (canvasTitle.right <= presetBounds.left || canvasTitle.top >= infoBounds.bottom ||
           canvasTitle.bottom <= presetBounds.top) &&
