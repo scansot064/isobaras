@@ -12,6 +12,11 @@ document.getElementById("app").addEventListener("load", async () => {
     check(app.getComputedStyle(doc.querySelector(".sidebar")).display === "none" &&
       app.getComputedStyle(doc.querySelector(".mobile-dock")).display !== "none",
       "En escritorio el mapa debe sustituir al panel lateral y mostrar herramientas flotantes.");
+    const footer = doc.querySelector(".map-footer").getBoundingClientRect();
+    const layerControl = doc.querySelector(".layer-toggle").getBoundingClientRect();
+    check(Math.abs((layerControl.left + layerControl.right) / 2 - (footer.left + footer.right) / 2) < 1 &&
+      !doc.querySelector("#layer-toggle").checked,
+      "El interruptor debe estar centrado en el pie del mapa y comenzar en superficie.");
     check(doc.querySelector("#file-drawer-button").getBoundingClientRect().bottom <= map.getBoundingClientRect().top,
       "El icono de archivo debe permanecer fuera del mapa también en escritorio.");
     const infoButton = doc.querySelector("#info-drawer-button");
@@ -104,8 +109,9 @@ document.getElementById("app").addEventListener("load", async () => {
       "Copiar desde el panel flotante debe conservar el centro en el otro plano.");
     doc.querySelector("#mobile-add").click();
     check(doc.querySelector("#desktop-options").hidden, "Los paneles flotantes no deben solaparse.");
-    doc.querySelector('#mobile-tools [data-layer="upper"]').click();
-    check(state.layer === "upper" && doc.querySelector("#desktop-surface-options").hidden &&
+    doc.querySelector("#layer-toggle").click();
+    check(state.layer === "upper" && doc.querySelector("#layer-toggle").checked &&
+      doc.querySelector("#desktop-surface-options").hidden &&
       !doc.querySelector("#desktop-jet-options").hidden && doc.querySelector("#desktop-copy").textContent ===
       "Copiar a superficie", "Cambiar de plano debe actualizar las opciones flotantes.");
     doc.querySelector("#desktop-options-button").click();
@@ -117,6 +123,7 @@ document.getElementById("app").addEventListener("load", async () => {
     app.restoreMap(app.validateMapDocument(data));
     await nextFrame();
     check(title.value === data.title && day.value === "29" && month.value === "02" && year.value === data.year &&
+      doc.querySelector("#layer-toggle").checked === (data.layer === "upper") &&
       air.checked === data.airEnabled &&
       doc.querySelector("#desktop-precipitation").checked === data.precipitationEnabled,
       "Cargar un mapa debe actualizar los campos y los interruptores del escritorio.");

@@ -174,6 +174,7 @@ document.getElementById("app").addEventListener("load", async () => {
       const current = app.mapDocument();
       const expected = presets[i].data;
       check(current.title === expected.title && current.date === expected.date && current.layer === expected.layer &&
+        doc.querySelector("#layer-toggle").checked === (expected.layer === "upper") &&
         current.objects.length === expected.objects.length &&
         current.objects.every((object, index) => object.id === expected.objects[index].id) &&
         current.airValues[0] === expected.airValues[0] && presetSelect.value === "" &&

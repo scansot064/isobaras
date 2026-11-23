@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#122638">
   <title>Generador interactivo de mapas de isobaras</title>
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
   <script defer src="assets/land.js"></script>
   <script defer src="assets/presets.js?v=1"></script>
   <script defer src="map.js"></script>
@@ -14,8 +14,8 @@
   <script defer src="jet.js"></script>
   <script defer src="wind.js"></script>
   <script defer src="air.js"></script>
-  <script defer src="app.js?v=4"></script>
-  <script defer src="mobile.js?v=5"></script>
+  <script defer src="app.js?v=5"></script>
+  <script defer src="mobile.js?v=6"></script>
   <script defer src="export.js?v=3"></script>
   <script defer src="save.js?v=3"></script>
 </head>
@@ -204,6 +204,14 @@
         </div>
         <div class="map-footer">
           <span><span class="footer-dot"></span> <span id="status" role="status" aria-live="polite">Listo para empezar</span></span>
+          <label class="layer-toggle">
+            <span>Superficie</span>
+            <span class="layer-toggle-control">
+              <input id="layer-toggle" type="checkbox" role="switch" aria-label="Plano de análisis: altura · 500 hPa">
+              <span class="layer-toggle-track" aria-hidden="true"></span>
+            </span>
+            <span>En altura</span>
+          </label>
           <span>Arrastra los elementos y sus tiradores</span>
         </div>
       </div>
@@ -262,11 +270,6 @@
   </div>
   <div class="mobile-dock" aria-label="Herramientas del mapa">
     <div class="mobile-tools" id="mobile-tools" hidden>
-      <p>Plano de análisis</p>
-      <div class="mobile-layers" role="group" aria-label="Plano de análisis">
-        <button type="button" class="active" data-layer="surface" aria-pressed="true">Superficie</button>
-        <button type="button" data-layer="upper" aria-pressed="false">Altura · 500 hPa</button>
-      </div>
       <p>Centros de acción</p>
       <div class="mobile-tool-grid">
         <button type="button" class="high" data-tool="high" data-strength="weak" aria-label="Anticiclón débil" aria-pressed="false">A débil</button>

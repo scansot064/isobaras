@@ -23,6 +23,7 @@ const desktopPrecipitation = document.getElementById("desktop-precipitation");
 const desktopCopy = document.getElementById("desktop-copy");
 const status = document.getElementById("status");
 const instruction = document.getElementById("instruction");
+const layerToggle = document.getElementById("layer-toggle");
 const deleteButton = document.getElementById("delete");
 const centerWeaken = document.getElementById("center-weaken");
 const centerStrengthen = document.getElementById("center-strengthen");
@@ -443,6 +444,7 @@ function switchLayer(layer) {
   state.selected = null;
   setTool(null);
   const upper = layer === "upper";
+  layerToggle.checked = upper;
   copyCentersButton.textContent = upper ? "Copiar a superficie" : "Copiar a altura";
   desktopCopy.textContent = copyCentersButton.textContent;
   document.querySelectorAll("[data-layer]").forEach(button => {
@@ -470,6 +472,7 @@ drawMap();
 updateDate();
 document.querySelectorAll("[data-layer]").forEach(button => button.addEventListener("click", () => switchLayer(button
   .dataset.layer)));
+layerToggle.addEventListener("change", () => switchLayer(layerToggle.checked ? "upper" : "surface"));
 document.querySelectorAll("[data-jet-mode]").forEach(button => button.addEventListener("click", () => setJetMode(button
   .dataset.jetMode)));
 document.querySelectorAll("[data-tool]").forEach(button => button.addEventListener("click", () => {

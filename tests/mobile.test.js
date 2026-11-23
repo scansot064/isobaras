@@ -163,6 +163,8 @@ document.getElementById("app").addEventListener("load", async () => {
       const topbar = doc.querySelector(".topbar").getBoundingClientRect();
       const metaButton = doc.querySelector("#mobile-meta-button").getBoundingClientRect();
       const toolbar = doc.querySelector(".map-toolbar").getBoundingClientRect();
+      const layerControl = doc.querySelector(".layer-toggle").getBoundingClientRect();
+      const footer = doc.querySelector(".map-footer").getBoundingClientRect();
       check([...doc.querySelectorAll(".mobile-actions button, .mobile-actions .donation-link")].every(button => {
         const bounds = button.getBoundingClientRect();
         return app.getComputedStyle(button).display !== "none" && bounds.width >= 44 && bounds.height >= 44;
@@ -176,6 +178,8 @@ document.getElementById("app").addEventListener("load", async () => {
         (canvasTitle.right <= presetBounds.left || canvasTitle.top >= infoBounds.bottom ||
           canvasTitle.bottom <= presetBounds.top) &&
         metaButton.height >= 44 && toolbar.height <= 60 &&
+        Math.abs((layerControl.left + layerControl.right) / 2 - (footer.left + footer.right) / 2) < 1 &&
+        doc.querySelector("#layer-toggle").getBoundingClientRect().width >= 44 &&
         doc.documentElement.scrollWidth <= width,
       "Todos los botones móviles deben estar visibles y medir al menos 44 píxeles sin desbordar.");
     }
@@ -430,9 +434,9 @@ document.getElementById("app").addEventListener("load", async () => {
     doc.querySelector("#desktop-copy").click();
     check(state.objects.some(object => object.layer === "upper" && object.type === "high"),
       "Capas debe permitir copiar centros desde móvil.");
-    doc.querySelector("#mobile-add").click();
-    doc.querySelector('#mobile-tools [data-layer="upper"]').click();
+    doc.querySelector("#layer-toggle").click();
     check(doc.querySelector("#mobile-fronts").hidden && state.layer === "upper" &&
+      doc.querySelector("#layer-toggle").checked &&
       doc.querySelector('.segmented [data-layer="upper"]').getAttribute("aria-pressed") === "true",
       "El cambio de plano móvil debe sincronizarse y ocultar los frentes en altura.");
     doc.querySelector("#desktop-options-button").click();
@@ -444,9 +448,9 @@ document.getElementById("app").addEventListener("load", async () => {
     check(!deleteButton.hidden, "La papelera también debe permitir eliminar el chorro manual.");
     doc.querySelector('#desktop-jet-options [data-jet-mode="automatic"]').click();
     check(state.jetMode === "automatic", "El modo automático del chorro debe funcionar en móvil.");
-    doc.querySelector("#mobile-add").click();
-    doc.querySelector('#mobile-tools [data-layer="surface"]').click();
-    check(!doc.querySelector("#mobile-fronts").hidden, "Los frentes deben volver al plano de superficie.");
+    doc.querySelector("#layer-toggle").click();
+    check(!doc.querySelector("#layer-toggle").checked && !doc.querySelector("#mobile-fronts").hidden,
+      "Los frentes deben volver al plano de superficie.");
     doc.querySelector("#desktop-options-button").click();
     const confirm = app.confirm;
     app.confirm = () => true;

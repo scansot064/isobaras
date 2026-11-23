@@ -98,6 +98,13 @@ desktopOptionsButton.addEventListener("click", () => {
   desktopOptions.hidden = !desktopOptions.hidden;
   desktopOptionsButton.setAttribute("aria-expanded", String(!desktopOptions.hidden));
 });
+layerToggle.addEventListener("change", () => {
+  mobileTools.hidden = true;
+  mobileAdd.setAttribute("aria-expanded", "false");
+  desktopOptions.hidden = true;
+  desktopOptionsButton.setAttribute("aria-expanded", "false");
+  closeDrawers();
+});
 drawers.forEach(drawer => {
   drawer.button.addEventListener("click", () => {
     const opening = drawer.panel.hidden;
