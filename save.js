@@ -131,6 +131,29 @@ function restoreMap(data) {
   status.textContent = "Mapa cargado.";
 }
 
+const presetSelect = document.getElementById("preset-select");
+if (typeof PRESETS === "undefined") {
+  console.error("No se pudieron cargar los escenarios predefinidos.");
+  presetSelect.disabled = true;
+  status.textContent = "No se pudieron cargar los escenarios predefinidos.";
+} else {
+  PRESETS.forEach((preset, index) => presetSelect.add(new Option(preset.name, String(index))));
+  presetSelect.addEventListener("change", () => {
+    if (presetSelect.value === "") return;
+    const preset = PRESETS[Number(presetSelect.value)];
+    presetSelect.value = "";
+    try {
+      if (!preset) throw new Error("Escenario desconocido.");
+      const validated = validateMapDocument(preset.data);
+      restoreMap(validated);
+      status.textContent = `Escenario cargado: ${preset.name}.`;
+    } catch (error) {
+      console.error("No se pudo cargar el escenario:", error);
+      status.textContent = `No se pudo cargar el escenario: ${error.message}`;
+    }
+  });
+}
+
 document.getElementById("save-map").addEventListener("click", () => {
   try {
     const json = JSON.stringify(mapDocument(), null, 2);

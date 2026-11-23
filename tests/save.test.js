@@ -161,6 +161,35 @@ document.getElementById("app").addEventListener("load", async () => {
     app.copyCenters();
     check(state.objects.find(object => object.layer === "surface" && object.type === "high").intensityBoost === 8,
       "Copiar de vuelta a superficie debe recuperar la potencia.");
+    const presets = app.eval("PRESETS");
+    const presetSelect = doc.querySelector("#preset-select");
+    check(presets.length === 10 && presetSelect.options.length === 11 &&
+      [...presetSelect.options].slice(1).every((option, index) => option.text === presets[index].name &&
+        !option.text.endsWith(".json")),
+      "El desplegable debe mostrar los diez nombres de archivo sin la extensión.");
+    app.confirm = () => { throw new Error("Los escenarios deben cargarse directamente."); };
+    for (let i = 0; i < presets.length; i++) {
+      presetSelect.value = String(i);
+      presetSelect.dispatchEvent(new app.Event("change", { bubbles: true }));
+      const current = app.mapDocument();
+      const expected = presets[i].data;
+      check(current.title === expected.title && current.date === expected.date && current.layer === expected.layer &&
+        current.objects.length === expected.objects.length &&
+        current.objects.every((object, index) => object.id === expected.objects[index].id) &&
+        current.airValues[0] === expected.airValues[0] && presetSelect.value === "" &&
+        doc.querySelector("#status").textContent.includes(presets[i].name),
+        `El escenario ${presets[i].name} debe restaurar sus datos directamente.`);
+    }
+    const beforeInvalidPreset = JSON.stringify(app.mapDocument());
+    presets.push({ name: "Inválido", data: {} });
+    presetSelect.add(new app.Option("Inválido", String(presets.length - 1)));
+    presetSelect.value = String(presets.length - 1);
+    presetSelect.dispatchEvent(new app.Event("change", { bubbles: true }));
+    check(JSON.stringify(app.mapDocument()) === beforeInvalidPreset &&
+      doc.querySelector("#status").textContent.includes("No se pudo cargar"),
+      "Un escenario inválido debe mostrar un error y conservar el mapa actual.");
+    presets.pop();
+    presetSelect.remove(presetSelect.options.length - 1);
     app.confirm = originalConfirm;
     result.textContent = "PASS";
   } catch (error) {

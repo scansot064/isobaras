@@ -4,6 +4,7 @@ Editor didáctico de mapas meteorológicos para el Atlántico norte y Europa occ
 
 ## Uso
 
+- El desplegable **Escenarios**, a la izquierda de información, carga directamente uno de los mapas de ejemplo. Sustituye el mapa actual en ambos planos; guarda primero los cambios que quieras conservar.
 - Edita el **título**, el **día y mes** y, si lo deseas, el **año** en la banda superior del mapa. En móvil, pulsa el resumen de fecha y título para abrir el panel de edición; se cierra con su botón, Escape o pulsando fuera. El año es opcional y no modifica la fecha seleccionada ni la simulación. El título se comparte entre ambos planos.
 - Elige **Superficie** o **Altura · 500 hPa**. Cada plano mantiene sus propios elementos mientras la página esté abierta.
 - Elige **Anticiclón** o **Borrasca** con la intensidad deseada y después haz clic en el mapa. En superficie, todos los centros contribuyen a un mismo campo de presión y sus isobaras en hPa se recalculan conjuntamente desde el primer centro. En altura, los centros modifican conjuntamente un campo de geopotencial, con curvas discontinuas en metros y flechas de viento.
@@ -46,6 +47,8 @@ Las tierras proceden de [Natural Earth, escala 1:110m](https://www.naturalearthd
 - `tests/`: pruebas ejecutables en el navegador.
 
 Los archivos JavaScript se cargan en el orden indicado en `index.html` y comparten funciones globales; no requieren compilación.
+
+Los escenarios incluidos se generan a partir de los archivos JSON de `presets/`. Después de añadir, cambiar o eliminar uno, ejecuta `ruby scripts/build-presets.rb`, guarda también el archivo generado `assets/presets.js` e incrementa su versión en `index.html` para actualizar la caché; así siguen disponibles al abrir la página sin conexión. Usa `ruby scripts/build-presets.rb --check` para comprobar que está actualizado.
 
 ## Pruebas
 

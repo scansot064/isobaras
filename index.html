@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#122638">
   <title>Generador interactivo de mapas de isobaras</title>
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
   <script defer src="assets/land.js"></script>
+  <script defer src="assets/presets.js?v=1"></script>
   <script defer src="map.js"></script>
   <script defer src="symbols.js"></script>
   <script defer src="pressure.js?v=2"></script>
@@ -16,7 +17,7 @@
   <script defer src="app.js?v=4"></script>
   <script defer src="mobile.js?v=5"></script>
   <script defer src="export.js?v=3"></script>
-  <script defer src="save.js?v=2"></script>
+  <script defer src="save.js?v=3"></script>
 </head>
 <body>
   <header class="topbar">
@@ -123,6 +124,9 @@
           <p id="canvas-description">Isobaras, centros de acción y frentes</p>
         </div>
         <div class="heading-actions">
+          <select id="preset-select" aria-label="Cargar escenario predefinido; sustituye el mapa actual" title="Cargar escenario: sustituye el mapa actual">
+            <option value="">Escenarios</option>
+          </select>
           <button type="button" id="info-drawer-button" aria-label="Información meteorológica" title="Información meteorológica" aria-expanded="false" aria-controls="info-drawer-panel">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"></circle><path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
           </button>

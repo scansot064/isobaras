@@ -471,7 +471,7 @@ input[type=text] {
   justify-content: space-between;
   align-items: end;
   gap: 20px;
-  padding-right: 96px;
+  padding-right: 240px;
   margin-bottom: 22px
 }
 
@@ -521,7 +521,20 @@ input[type=text] {
   position: absolute;
   right: 0;
   top: 0;
-  display: flex
+  display: flex;
+  align-items: center
+}
+
+.heading-actions select {
+  width: 140px;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid #dce5e3;
+  border-radius: 6px;
+  background: #fff;
+  color: #526e70;
+  font-size: 11px;
+  font-weight: 700
 }
 
 .heading-actions button {
@@ -1217,8 +1230,13 @@ input[type=text] {
   }
 
   .canvas-heading .eyebrow {
-    min-height: 44px;
-    padding-right: 96px
+    min-height: 0;
+    padding-right: 0
+  }
+
+  .heading-actions {
+    position: static;
+    align-self: flex-end
   }
 
   .canvas-heading h2 {

@@ -155,6 +155,7 @@ document.getElementById("app").addEventListener("load", async () => {
       await nextFrame();
       const fileBounds = drawerButton.getBoundingClientRect();
       const infoBounds = infoButton.getBoundingClientRect();
+      const presetBounds = doc.querySelector("#preset-select").getBoundingClientRect();
       const canvasTitle = doc.querySelector(".canvas-heading h2").getBoundingClientRect();
       const heading = doc.querySelector(".brand h1").getBoundingClientRect();
       const topbar = doc.querySelector(".topbar").getBoundingClientRect();
@@ -167,8 +168,10 @@ document.getElementById("app").addEventListener("load", async () => {
         heading.top >= topbar.top && heading.bottom <= topbar.bottom && heading.right <= topbar.right &&
         fileBounds.width >= 44 && fileBounds.height >= 44 && fileBounds.bottom <= map.getBoundingClientRect().top &&
         infoBounds.width >= 44 && infoBounds.height >= 44 && infoBounds.right <= fileBounds.left &&
+        presetBounds.height >= 44 && presetBounds.left >= 0 && presetBounds.right <= infoBounds.left &&
         infoBounds.bottom <= map.getBoundingClientRect().top &&
-        (canvasTitle.right <= infoBounds.left || canvasTitle.top >= infoBounds.bottom) &&
+        (canvasTitle.right <= presetBounds.left || canvasTitle.top >= infoBounds.bottom ||
+          canvasTitle.bottom <= presetBounds.top) &&
         metaButton.height >= 44 && toolbar.height <= 60 &&
         doc.documentElement.scrollWidth <= width,
       "Todos los botones móviles deben estar visibles y medir al menos 44 píxeles sin desbordar.");
